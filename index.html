@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1120" />
+  <title>Tischtennis – Punkte &amp; Rally</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- PWA: als App installierbar -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TT Zähler" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>TT&nbsp;Zähler</span>
+      </div>
+      <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
+    </header>
+
+    <div class="tabs" id="tabs">
+      <button data-view="score" class="active">🏓 Punkte</button>
+      <button data-view="rally">🔁 Rally</button>
+    </div>
+
+    <!-- ============================ PUNKTE ============================ -->
+    <main class="view" id="view-score">
+      <div class="scoreboard" id="scoreboard">
+        <button class="half p1" id="halfP1" data-player="1">
+          <div class="half-top">
+            <span class="pname" id="nameP1">Spieler 1</span>
+            <span class="serve" id="serveP1" aria-label="Aufschlag">🏓</span>
+          </div>
+          <div class="pscore" id="scoreP1">0</div>
+          <div class="half-bot">
+            <span class="sets" id="setsP1"></span>
+            <span class="ballhint" id="hintP1"></span>
+          </div>
+        </button>
+
+        <div class="divider">
+          <span class="divlabel">Sätze</span>
+          <span class="setscore"><b id="setNum1">0</b><i>:</i><b id="setNum2">0</b></span>
+          <span class="divhint" id="serveLabel">Aufschlag&nbsp;P1</span>
+        </div>
+
+        <button class="half p2" id="halfP2" data-player="2">
+          <div class="half-bot">
+            <span class="sets" id="setsP2"></span>
+            <span class="ballhint" id="hintP2"></span>
+          </div>
+          <div class="pscore" id="scoreP2">0</div>
+          <div class="half-top">
+            <span class="pname" id="nameP2">Spieler 2</span>
+            <span class="serve" id="serveP2" aria-label="Aufschlag">🏓</span>
+          </div>
+        </button>
+
+        <div class="winner" id="winner" hidden>
+          <div class="winner-card">
+            <div class="winner-emoji">🏆</div>
+            <div class="winner-name" id="winnerName">Spieler 1</div>
+            <div class="winner-sub" id="winnerSub">gewinnt das Match</div>
+            <button class="btn btn-primary" id="winnerNew">Neues Match</button>
+          </div>
+        </div>
+      </div>
+
+      <footer class="controls">
+        <button class="btn btn-ghost" id="undoBtn">↶&nbsp;Undo</button>
+        <button class="btn btn-primary" id="newMatchBtn">Neues Match</button>
+      </footer>
+    </main>
+
+    <!-- ============================ RALLY ============================ -->
+    <main class="view" id="view-rally" hidden>
+      <div class="counter-card" id="counterCard">
+        <div class="counter-label">Ballwechsel · aktuell</div>
+        <div class="counter-value" id="currentValue">0</div>
+        <div class="counter-sub">
+          <div><span id="longestValue">0</span><small>längster</small></div>
+          <div><span id="lastValue">0</span><small>letzter</small></div>
+          <div><span id="rallyCount">0</span><small>Ballwechsel</small></div>
+        </div>
+      </div>
+
+      <section class="mode-area">
+        <div class="mode-panel" id="panel-visual" hidden>
+          <div class="video-wrap">
+            <video id="video" playsinline muted></video>
+            <canvas id="overlay"></canvas>
+            <div class="net-line"></div>
+          </div>
+          <div class="meter"><div class="meter-fill" id="motionMeter"></div></div>
+          <p class="hint" id="visualHint">Kamera seitlich aufstellen, ganze Tischlänge im Bild.</p>
+        </div>
+
+        <div class="mode-panel" id="panel-audio" hidden>
+          <div class="audio-viz">
+            <div class="level-bar"><div class="level-fill" id="audioMeter"></div>
+              <div class="threshold-marker" id="thresholdMarker"></div>
+            </div>
+          </div>
+          <p class="hint" id="audioHint">Erkennt das „Tock“ von Ball auf Tisch &amp; Schläger.</p>
+        </div>
+
+        <div class="mode-panel" id="panel-manual" hidden>
+          <button class="tap-pad" id="tapPad">
+            <span class="tap-plus">+1</span>
+            <span class="tap-text">tippen pro Schlag</span>
+          </button>
+        </div>
+      </section>
+
+      <footer class="controls">
+        <button class="btn btn-ghost" id="resetBtn">Zurücksetzen</button>
+        <button class="btn btn-primary" id="toggleBtn">Start</button>
+      </footer>
+    </main>
+
+    <!-- ===================== PUNKTE-EINSTELLUNGEN ===================== -->
+    <div class="sheet" id="scoreSheet" hidden>
+      <div class="sheet-handle"></div>
+      <h2>Match-Einstellungen</h2>
+
+      <label class="field-label">Spieler 1</label>
+      <input class="text-input" id="inName1" type="text" maxlength="14" placeholder="Spieler 1" />
+      <label class="field-label" style="margin-top:14px;display:block">Spieler 2</label>
+      <input class="text-input" id="inName2" type="text" maxlength="14" placeholder="Spieler 2" />
+
+      <div class="setting-row">
+        <label class="field-label">Sätze (Best of)</label>
+        <div class="segmented three" id="bestOfSel">
+          <button data-bo="3">3</button>
+          <button data-bo="5" class="active">5</button>
+          <button data-bo="7">7</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label class="field-label">Punkte pro Satz</label>
+        <div class="segmented two" id="ppgSel">
+          <button data-pp="11" class="active">11</button>
+          <button data-pp="21">21</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label class="field-label">Erster Aufschlag</label>
+        <div class="segmented two" id="firstServeSel">
+          <button data-fs="1" class="active">Spieler 1</button>
+          <button data-fs="2">Spieler 2</button>
+        </div>
+      </div>
+
+      <div class="setting-row toggles">
+        <label class="switch"><input type="checkbox" id="scoreVibrate" checked /> Vibration bei Punkt</label>
+      </div>
+
+      <button class="btn btn-primary full" id="scoreSheetSave">Übernehmen &amp; neues Match</button>
+    </div>
+
+    <!-- ===================== RALLY-EINSTELLUNGEN ===================== -->
+    <div class="sheet" id="settingsSheet" hidden>
+      <div class="sheet-handle"></div>
+      <h2>Rally-Einstellungen</h2>
+
+      <label class="field-label">Erkennung</label>
+      <div class="segmented" id="modeSelect">
+        <button data-mode="visual">📷 Kamera</button>
+        <button data-mode="audio">🔊 Ton</button>
+        <button data-mode="manual" class="active">👆 Tippen</button>
+      </div>
+
+      <div class="setting-row" data-for="audio visual">
+        <div class="setting-head">
+          <label>Empfindlichkeit</label>
+          <span id="sensValue">50%</span>
+        </div>
+        <input type="range" id="sensitivity" min="1" max="99" value="50" />
+        <button class="btn btn-mini" id="calibrateBtn" data-for="audio">Auto-Kalibrieren</button>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-head">
+          <label>Ballwechsel-Ende nach Pause</label>
+          <span id="timeoutValue">2,5 s</span>
+        </div>
+        <input type="range" id="rallyTimeout" min="800" max="6000" step="100" value="2500" />
+      </div>
+
+      <div class="setting-row toggles">
+        <label class="switch"><input type="checkbox" id="vibrateToggle" checked /> Vibration bei Schlag</label>
+      </div>
+
+      <button class="btn btn-primary full" id="closeSheet">Fertig</button>
+    </div>
+
+    <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+    <div class="toast" id="toast" hidden></div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="score.js"></script>
+  <script>
+    // Service-Worker registrieren (macht die App installierbar & offline-fähig)
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch((err) => console.warn("SW-Registrierung fehlgeschlagen:", err));
+      });
+    }
+  </script>
+</body>
+</html>
