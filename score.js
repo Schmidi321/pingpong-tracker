@@ -174,6 +174,73 @@
     document.querySelectorAll("#tabs button").forEach((b) =>
       b.classList.toggle("active", b.dataset.view === v));
     if (v !== "rally" && typeof window.__rallyStop === "function") window.__rallyStop();
+    if (v !== "score") Voice.stop(true);   // Sprache nur im Punkte-Tab
+    updateVoiceBtn();
+  }
+
+  /* ----------------------- Sprachsteuerung ---------------------- */
+  /* "eins"/"1" → Punkt für Spieler 1, "zwei"/"2" → Spieler 2.
+     Web Speech API (Chrome/Edge/Android), braucht Mikrofon + HTTPS. */
+  function parsePlayer(txt) {
+    let p = 0;
+    for (const t of txt.toLowerCase().replace(/[.,!?]/g, " ").split(/\s+/)) {
+      if (t === "1" || t === "eins" || t === "ein" || t === "eis") p = 1;
+      else if (t === "2" || t === "zwei" || t === "zwo" || t === "zwein") p = 2;
+    }
+    return p; // die zuletzt genannte Zahl gewinnt
+  }
+
+  const Voice = {
+    supported: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+    rec: null, active: false, last: 0,
+
+    start() {
+      if (!this.supported) { toast("Sprachsteuerung wird hier nicht unterstützt"); return; }
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SR();
+      rec.lang = "de-DE";
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (e) => {
+        const r = e.results[e.results.length - 1];
+        const p = parsePlayer(r[0].transcript);
+        if (!p) return;
+        const now = performance.now();
+        if (now - this.last < 850) return;   // Entprellung: interim+final/Wiederholung
+        this.last = now;
+        if (S.matchOver) { toast("Match ist beendet"); return; }
+        addPoint(p);
+        winAnim(p);
+      };
+      rec.onerror = (e) => {
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+          toast("Mikrofon-Zugriff nötig"); this.stop(true);
+        }
+      };
+      rec.onend = () => { if (this.active) { try { rec.start(); } catch (_) {} } };
+      this.rec = rec; this.active = true;
+      try { rec.start(); } catch (_) {}
+      setVoiceUI(true);
+      toast("🎤 Sprache an – sag „eins“ oder „zwei“");
+    },
+
+    stop(silent) {
+      this.active = false;
+      if (this.rec) { try { this.rec.stop(); } catch (_) {} this.rec = null; }
+      setVoiceUI(false);
+      if (!silent) toast("🎤 Sprache aus");
+    },
+
+    toggle() { this.active ? this.stop() : this.start(); },
+  };
+
+  function setVoiceUI(on) {
+    const b = $("voiceBtn");
+    if (b) b.classList.toggle("live", on);
+  }
+  function updateVoiceBtn() {
+    const b = $("voiceBtn");
+    if (b) b.hidden = !(Voice.supported && activeView === "score");
   }
 
   /* ----------------------------- Init --------------------------- */
@@ -185,6 +252,8 @@
     $("undoBtn").addEventListener("click", undo);
     $("newMatchBtn").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("winnerNew").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
+    $("voiceBtn").addEventListener("click", () => Voice.toggle());
+    updateVoiceBtn();
 
     document.querySelectorAll("#tabs button").forEach((b) =>
       b.addEventListener("click", () => switchView(b.dataset.view)));

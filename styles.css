@@ -232,3 +232,12 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .segmented.two { grid-template-columns: 1fr 1fr; }
 .segmented.three { grid-template-columns: repeat(3, 1fr); }
 .setting-row > .segmented { margin: 10px 0 0; }
+
+/* ===================== Topbar-Aktionen & Sprach-Button ===================== */
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.icon-btn.live { background: var(--danger); border-color: var(--danger); color: #fff;
+  animation: micpulse 1.3s ease-in-out infinite; }
+@keyframes micpulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, .55); }
+  50% { box-shadow: 0 0 0 8px rgba(244, 63, 94, 0); }
+}
