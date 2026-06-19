@@ -200,17 +200,20 @@
       const rec = new SR();
       rec.lang = "de-DE";
       rec.continuous = true;
-      rec.interimResults = true;
+      rec.interimResults = false;            // nur Endergebnisse → kein interim/final-Doppelzählen
       rec.onresult = (e) => {
-        const r = e.results[e.results.length - 1];
-        const p = parsePlayer(r[0].transcript);
-        if (!p) return;
-        const now = performance.now();
-        if (now - this.last < 850) return;   // Entprellung: interim+final/Wiederholung
-        this.last = now;
-        if (S.matchOver) { toast("Match ist beendet"); return; }
-        addPoint(p);
-        winAnim(p);
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const res = e.results[i];
+          if (!res.isFinal) continue;        // jedes Wort wird genau einmal gewertet
+          const p = parsePlayer(res[0].transcript);
+          if (!p) continue;
+          const now = performance.now();
+          if (now - this.last < 400) continue;   // Sicherheits-Entprellung
+          this.last = now;
+          if (S.matchOver) { toast("Match ist beendet"); return; }
+          addPoint(p);
+          winAnim(p);
+        }
       };
       rec.onerror = (e) => {
         if (e.error === "not-allowed" || e.error === "service-not-allowed") {
