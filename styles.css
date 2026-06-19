@@ -263,3 +263,27 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .view.anim-l { animation: slideInL .26s ease both; }
 .pscore.bump { animation: scoreBump .28s ease; }
 @keyframes scoreBump { 0% { transform: scale(1); } 38% { transform: scale(1.14); } 100% { transform: scale(1); } }
+
+/* ===================== Querformat & Tablet ===================== */
+/* Querformat: Spieler nebeneinander (data-eff wird per JS gesetzt) */
+.app[data-eff="landscape"] .scoreboard { flex-direction: row; }
+.app[data-eff="landscape"] .half { min-height: 0; }
+.app[data-eff="landscape"] .half.p2 { flex-direction: column-reverse; }  /* Name auch oben → symmetrisch */
+.app[data-eff="landscape"] .pscore { font-size: clamp(44px, 17vh, 120px); }
+.app[data-eff="landscape"] .divider {
+  flex: 0 0 auto; flex-direction: column; justify-content: center; gap: 12px; padding: 0 8px; text-align: center;
+}
+.app[data-eff="landscape"] .divlabel,
+.app[data-eff="landscape"] .divhint { flex: 0 0 auto; text-align: center; }
+.app[data-eff="landscape"] .setscore { justify-content: center; }
+.app[data-eff="landscape"] .controls { padding-top: 10px; }
+
+/* Tablet: mehr Breite & etwas größere Bedienelemente */
+@media (min-width: 700px) {
+  .app { max-width: 760px; }
+  .tabs button { font-size: 16px; padding: 13px 4px; }
+  .btn { font-size: 18px; }
+}
+@media (min-width: 700px) and (orientation: landscape) {
+  .app { max-width: 1000px; }
+}

@@ -22,6 +22,7 @@
     bestOf: 5,
     matchFirstServer: 1,
     vibrate: true,
+    layout: "auto",          // "auto" | "portrait" | "landscape"
     matchOver: false,
     history: [],
   };
@@ -183,7 +184,7 @@
   function saveCfg() {
     try {
       localStorage.setItem("tt.cfg", JSON.stringify({
-        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate,
+        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout,
       }));
     } catch (e) {}
   }
@@ -193,7 +194,7 @@
       if (!c) return;
       if (c.names) S.names = c.names;
       S.ppg = c.ppg || 11; S.bestOf = c.bestOf || 5;
-      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false;
+      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto";
     } catch (e) {}
   }
   function pickSegment(container, value, attr) {
@@ -206,6 +207,7 @@
     pickSegment($("bestOfSel"), S.bestOf, "bo");
     pickSegment($("ppgSel"), S.ppg, "pp");
     pickSegment($("firstServeSel"), S.matchFirstServer, "fs");
+    pickSegment($("layoutSel"), S.layout, "lay");
     $("scoreVibrate").checked = S.vibrate;
   }
 
@@ -297,6 +299,15 @@
     if (b) b.hidden = !(Voice.supported && activeView === "score");
   }
 
+  /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
+  function applyLayout() {
+    const eff = S.layout === "auto"
+      ? (window.innerWidth >= window.innerHeight ? "landscape" : "portrait")
+      : S.layout;
+    const app = document.querySelector(".app");
+    if (app) app.dataset.eff = eff;
+  }
+
   /* ----------------------------- Init --------------------------- */
   function init() {
     loadCfg();
@@ -337,6 +348,13 @@
       S.matchFirstServer = +b.dataset.fs; pickSegment($("firstServeSel"), S.matchFirstServer, "fs"); saveCfg(); render();
     });
     $("scoreVibrate").addEventListener("change", (e) => { S.vibrate = e.target.checked; saveCfg(); });
+    $("layoutSel").addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      S.layout = b.dataset.lay; pickSegment($("layoutSel"), S.layout, "lay"); saveCfg(); applyLayout();
+    });
+    window.addEventListener("resize", applyLayout);
+    window.addEventListener("orientationchange", applyLayout);
+    applyLayout();
 
     render();
   }
