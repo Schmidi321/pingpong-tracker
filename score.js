@@ -71,7 +71,7 @@
       toast("Satz für " + S.names[p] + " · Seitenwechsel");
       return;
     }
-    render(); buzz(14);
+    render(); buzz(14); pointPulse(p);
   }
 
   function undo() {
@@ -126,10 +126,57 @@
     const el = $("half" + sfx(p));
     el.classList.remove("win"); void el.offsetWidth; el.classList.add("win");
   }
+  function pointPulse(p) {
+    const el = $("score" + sfx(p));
+    el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+  }
+
+  /* Konfetti beim Match-Gewinn (Canvas, räumt sich selbst auf) */
+  const Confetti = {
+    cv: null, ctx: null, parts: [], raf: 0, until: 0,
+    burst(winner) {
+      this.cv = this.cv || $("confetti");
+      if (!this.cv) return;
+      this.ctx = this.ctx || this.cv.getContext("2d");
+      const W = (this.cv.width = window.innerWidth);
+      const H = (this.cv.height = window.innerHeight);
+      const cols = winner === 2
+        ? ["#f97316", "#fdba74", "#ffffff", "#38bdf8"]
+        : ["#38bdf8", "#7dd3fc", "#ffffff", "#f97316"];
+      this.parts = [];
+      for (let i = 0; i < 150; i++) {
+        this.parts.push({
+          x: W * (0.2 + Math.random() * 0.6), y: H * 0.28 + (Math.random() - 0.5) * 80,
+          vx: (Math.random() - 0.5) * 10, vy: Math.random() * -10 - 3,
+          g: 0.16 + Math.random() * 0.12, s: 5 + Math.random() * 8,
+          rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.35,
+          c: cols[i % cols.length],
+        });
+      }
+      this.until = performance.now() + 2800;
+      cancelAnimationFrame(this.raf); this.loop();
+    },
+    loop() {
+      const ctx = this.ctx, cv = this.cv;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      for (const p of this.parts) {
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.55);
+        ctx.restore();
+      }
+      if (performance.now() < this.until) this.raf = requestAnimationFrame(() => this.loop());
+      else ctx.clearRect(0, 0, cv.width, cv.height);
+    },
+  };
+
   function showWinner(p) {
     $("winnerName").textContent = S.names[p];
     $("winnerSub").textContent = `gewinnt ${S.sets[p]} : ${S.sets[other(p)]}`;
-    $("winner").hidden = false;
+    const w = $("winner");
+    w.dataset.p = p;
+    w.hidden = false;
+    Confetti.burst(p);
   }
 
   /* ----------------------------- Config ------------------------- */
@@ -167,10 +214,14 @@
   const openScoreSheet = () => { syncSettingsUI(); $("scoreSheet").hidden = false; $("sheetBackdrop").hidden = false; };
   const closeScoreSheet = () => { $("scoreSheet").hidden = true; $("sheetBackdrop").hidden = true; };
 
+  const VIEW_ORDER = { score: 0, rally: 1 };
   function switchView(v) {
+    const dir = (VIEW_ORDER[v] >= VIEW_ORDER[activeView]) ? "anim-r" : "anim-l";
     activeView = v;
     $("view-score").hidden = v !== "score";
     $("view-rally").hidden = v !== "rally";
+    const el = $("view-" + v);
+    el.classList.remove("anim-r", "anim-l"); void el.offsetWidth; el.classList.add(dir);
     document.querySelectorAll("#tabs button").forEach((b) =>
       b.classList.toggle("active", b.dataset.view === v));
     if (v !== "rally" && typeof window.__rallyStop === "function") window.__rallyStop();
