@@ -88,6 +88,7 @@
     S.matchOver = false; S.history = [];
     $("winner").hidden = true;
     render();
+    if (typeof AutoRally !== "undefined" && AutoRally.active) AutoRally.beginRally();
   }
 
   /* -------------------------------------------------------------- */
@@ -227,7 +228,7 @@
     document.querySelectorAll("#tabs button").forEach((b) =>
       b.classList.toggle("active", b.dataset.view === v));
     if (v !== "rally" && typeof window.__rallyStop === "function") window.__rallyStop();
-    if (v !== "score") Voice.stop(true);   // Sprache nur im Punkte-Tab
+    if (v !== "score") { Voice.stop(true); AutoRally.stop(); }   // Mikro-Features nur im Punkte-Tab
     updateVoiceBtn();
   }
 
@@ -249,6 +250,7 @@
 
     start() {
       if (!this.supported) { toast("Sprachsteuerung wird hier nicht unterstützt"); return; }
+      if (AutoRally.active) AutoRally.stop();              // Mikro nicht doppelt belegen
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
       rec.lang = "de-DE";
@@ -295,8 +297,10 @@
     if (b) b.classList.toggle("live", on);
   }
   function updateVoiceBtn() {
-    const b = $("voiceBtn");
-    if (b) b.hidden = !(Voice.supported && activeView === "score");
+    const vb = $("voiceBtn");
+    if (vb) vb.hidden = !(Voice.supported && activeView === "score");
+    const ab = $("autoBtn");
+    if (ab) ab.hidden = activeView !== "score";
   }
 
   /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
@@ -308,16 +312,131 @@
     if (app) app.dataset.eff = eff;
   }
 
+  /* ====================== Auto-Rally (Ton, 2 Spieler) ======================
+     Hört per Web Audio die Schläge eines Ballwechsels, erkennt das Rally-Ende
+     (Pause nach Schlägen) und fragt den Gewinner ab: per Stimme ("eins/zwei")
+     ODER Tippen der Spielerhälfte. Punkt landet im normalen Zähler.
+     Die Ton-Erkennung ist – wie der Rally-Modus – am Tisch feinzutunen. */
+  function setAutoUI(on) { const b = $("autoBtn"); if (b) b.classList.toggle("live", on); }
+  function hideAutoBanner() { const el = $("autoBanner"); if (el) { el.hidden = true; el.classList.remove("pending"); } }
+  function showAutoBanner(mode, hits) {
+    const el = $("autoBanner"); if (!el) return;
+    el.hidden = false;
+    el.classList.toggle("pending", mode === "pending");
+    if (mode === "pending") el.textContent = `🏁 Punkt! (${hits} Schläge) – wer? „eins/zwei“ sagen oder tippen`;
+    else if (mode === "done") el.textContent = "🏆 Match beendet";
+    else el.textContent = hits > 0 ? `🎧 Ballwechsel läuft · ${hits} Schläge` : "🎧 Auto-Rally aktiv · spielt los";
+  }
+
+  const AutoRally = {
+    active: false, state: "off",
+    ctx: null, analyser: null, stream: null, buf: null, raf: 0,
+    armed: true, noiseFloor: 0.02, hits: 0, lastHit: 0, endMs: 1800, rec: null,
+
+    toggle() { this.active ? this.stop() : this.start(); },
+
+    async start() {
+      if (Voice.active) Voice.stop(true);                 // Mikro nicht doppelt belegen
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        });
+      } catch (e) { toast("Mikrofon-Zugriff nötig"); return; }
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = this.ctx.createMediaStreamSource(this.stream);
+      this.analyser = this.ctx.createAnalyser();
+      this.analyser.fftSize = 1024;
+      src.connect(this.analyser);
+      this.buf = new Uint8Array(this.analyser.fftSize);
+      this.active = true; this.armed = true;
+      setAutoUI(true); updateVoiceBtn();
+      this.beginRally();
+      this.loop();
+      toast("🎧 Auto-Rally an – einfach spielen");
+    },
+
+    beginRally() { this.state = "listening"; this.hits = 0; this.lastHit = 0; showAutoBanner("listening", 0); },
+
+    loop() {
+      if (!this.active) return;
+      this.analyser.getByteTimeDomainData(this.buf);
+      let peak = 0;
+      for (let i = 0; i < this.buf.length; i++) { const v = Math.abs(this.buf[i] - 128) / 128; if (v > peak) peak = v; }
+      if (peak < 0.08) this.noiseFloor = this.noiseFloor * 0.95 + peak * 0.05;
+      const threshold = Math.max(this.noiseFloor + 0.05, 0.15);
+      const now = performance.now();
+      if (this.state === "listening") {
+        if (this.armed && peak >= threshold) {
+          this.armed = false; this.hits++; this.lastHit = now;
+          if (S.vibrate && navigator.vibrate) navigator.vibrate(6);
+          showAutoBanner("listening", this.hits);
+        } else if (!this.armed && peak < threshold * 0.55) {
+          this.armed = true;
+        }
+        if (this.hits > 0 && now - this.lastHit > this.endMs) this.endRally();
+      }
+      this.raf = requestAnimationFrame(() => this.loop());
+    },
+
+    endRally() {
+      this.state = "pending";
+      showAutoBanner("pending", this.hits);
+      if (navigator.vibrate) navigator.vibrate(40);
+      const sb = $("scoreboard"); if (sb) sb.classList.add("await-pick");
+      this.listenWinner();
+    },
+
+    listenWinner() {
+      if (!Voice.supported) return;   // ohne Spracherkennung: nur Tippen
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SR();
+      rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = false;
+      rec.onresult = (e) => {
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (!e.results[i].isFinal) continue;
+          const p = parsePlayer(e.results[i][0].transcript);
+          if (p) { this.assign(p); return; }
+        }
+      };
+      rec.onerror = () => {};
+      rec.onend = () => { if (this.state === "pending" && this.active) { try { rec.start(); } catch (_) {} } };
+      this.rec = rec; try { rec.start(); } catch (_) {}
+    },
+
+    stopWinnerListen() { if (this.rec) { try { this.rec.stop(); } catch (_) {} this.rec = null; } },
+
+    assign(p) {                       // Gewinner per Stimme ODER Tipp
+      if (!this.active) return;
+      this.stopWinnerListen();
+      const sb = $("scoreboard"); if (sb) sb.classList.remove("await-pick");
+      addPoint(p); winAnim(p);
+      if (S.matchOver) { this.state = "matchover"; showAutoBanner("done", 0); }
+      else this.beginRally();
+    },
+
+    stop() {
+      this.active = false; this.state = "off";
+      cancelAnimationFrame(this.raf);
+      this.stopWinnerListen();
+      if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
+      if (this.ctx) { try { this.ctx.close(); } catch (_) {} }
+      this.ctx = this.analyser = this.stream = null;
+      const sb = $("scoreboard"); if (sb) sb.classList.remove("await-pick");
+      hideAutoBanner(); setAutoUI(false); updateVoiceBtn();
+    },
+  };
+
   /* ----------------------------- Init --------------------------- */
   function init() {
     loadCfg();
 
-    $("halfP1").addEventListener("click", () => addPoint(1));
-    $("halfP2").addEventListener("click", () => addPoint(2));
+    $("halfP1").addEventListener("click", () => AutoRally.active ? AutoRally.assign(1) : addPoint(1));
+    $("halfP2").addEventListener("click", () => AutoRally.active ? AutoRally.assign(2) : addPoint(2));
     $("undoBtn").addEventListener("click", undo);
     $("newMatchBtn").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("winnerNew").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("voiceBtn").addEventListener("click", () => Voice.toggle());
+    $("autoBtn").addEventListener("click", () => AutoRally.toggle());
     updateVoiceBtn();
 
     document.querySelectorAll("#tabs button").forEach((b) =>

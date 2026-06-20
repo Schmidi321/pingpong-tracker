@@ -24,6 +24,7 @@
         <span>TT&nbsp;Zähler</span>
       </div>
       <div class="topbar-actions">
+        <button id="autoBtn" class="icon-btn" aria-label="Auto-Rally (Ton)" title="Auto-Rally: Ballwechsel per Ton erkennen" hidden>🎧</button>
         <button id="voiceBtn" class="icon-btn" aria-label="Sprachsteuerung" title="Sprache: sag „eins“ oder „zwei“" hidden>🎤</button>
         <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
       </div>
@@ -36,6 +37,7 @@
 
     <!-- ============================ PUNKTE ============================ -->
     <main class="view" id="view-score">
+      <div class="auto-banner" id="autoBanner" hidden></div>
       <div class="scoreboard" id="scoreboard">
         <button class="half p1" id="halfP1" data-player="1">
           <div class="half-top">
