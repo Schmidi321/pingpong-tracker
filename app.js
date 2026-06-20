@@ -21,6 +21,7 @@ const state = {
   rallyTimeoutMs: 2500,
   sensitivity: 0.5, // 0..1
   vibrate: true,
+  facing: "environment", // "environment" (hinten) | "user" (vorne)
 };
 
 /* -------------------------------------------------------------------- */
@@ -186,7 +187,7 @@ const visual = {
     const video = $("video");
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", frameRate: { ideal: 60 }, width: { ideal: 1280 } },
+        video: { facingMode: state.facing, frameRate: { ideal: 60 }, width: { ideal: 1280 } },
         audio: false,
       });
     } catch (e) { return failMedia("Kamera", e); }
@@ -308,6 +309,18 @@ function setSensitivity(v) {
   $("sensValue").textContent = Math.round(state.sensitivity * 100) + "%";
 }
 
+/* Kamera vorne/hinten umschalten – damit man bei Tisch-Aufstellung den
+   Bildschirm sehen kann. Bei laufender Kamera den Stream neu holen. */
+async function flipCamera() {
+  state.facing = state.facing === "environment" ? "user" : "environment";
+  $("video").classList.toggle("mirror", state.facing === "user");
+  showToast(state.facing === "user" ? "Frontkamera (vorne)" : "Rückkamera (hinten)");
+  if (state.mode === "visual" && state.running) {
+    visual.stop();
+    await visual.start();
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /* Verkabelung                                                          */
 /* -------------------------------------------------------------------- */
@@ -330,6 +343,7 @@ function init() {
 
   $("sensitivity").addEventListener("input", (e) => setSensitivity(e.target.value / 100));
   $("calibrateBtn").addEventListener("click", () => audio.calibrate());
+  $("flipCam").addEventListener("click", flipCamera);
 
   $("rallyTimeout").addEventListener("input", (e) => {
     state.rallyTimeoutMs = +e.target.value;
