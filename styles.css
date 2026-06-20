@@ -294,6 +294,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   background: linear-gradient(135deg, rgba(56,189,248,.18), var(--bg-elev));
   border: 1px solid var(--line); color: var(--text); border-radius: 14px;
   padding: 12px 16px; text-align: center; font-weight: 700; font-size: 15px;
+  cursor: pointer; -webkit-user-select: none; user-select: none;
 }
 .auto-banner[hidden] { display: none; }
 .auto-banner.pending {

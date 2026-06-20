@@ -24,6 +24,7 @@
     vibrate: true,
     layout: "auto",          // "auto" | "portrait" | "landscape"
     inputMode: "tap",        // "tap" | "voice" | "auto"
+    keepAwake: true,
     matchOver: false,
     history: [],
   };
@@ -186,7 +187,7 @@
   function saveCfg() {
     try {
       localStorage.setItem("tt.cfg", JSON.stringify({
-        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, inp: S.inputMode,
+        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, inp: S.inputMode, wake: S.keepAwake,
       }));
     } catch (e) {}
   }
@@ -196,7 +197,7 @@
       if (!c) return;
       if (c.names) S.names = c.names;
       S.ppg = c.ppg || 11; S.bestOf = c.bestOf || 5;
-      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.inputMode = c.inp || "tap";
+      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.inputMode = c.inp || "tap"; S.keepAwake = c.wake !== false;
     } catch (e) {}
   }
   function pickSegment(container, value, attr) {
@@ -212,6 +213,7 @@
     pickSegment($("layoutSel"), S.layout, "lay");
     pickSegment($("inputSel"), S.inputMode, "inp");
     $("scoreVibrate").checked = S.vibrate;
+    $("wakeToggle").checked = S.keepAwake;
   }
 
   /* --------------------------- Sheet/Tabs ----------------------- */
@@ -248,7 +250,7 @@
 
   const Voice = {
     supported: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
-    rec: null, active: false, last: 0,
+    rec: null, active: false, consumedIdx: -1,
 
     start() {
       if (!this.supported) { toast("Sprachsteuerung wird hier nicht unterstützt"); return; }
@@ -257,20 +259,16 @@
       const rec = new SR();
       rec.lang = "de-DE";
       rec.continuous = true;
-      rec.interimResults = false;            // nur Endergebnisse → kein interim/final-Doppelzählen
+      rec.interimResults = true;             // sofort reagieren (Zwischenergebnisse)
+      rec.onstart = () => { this.consumedIdx = -1; };
       rec.onresult = (e) => {
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          const res = e.results[i];
-          if (!res.isFinal) continue;        // jedes Wort wird genau einmal gewertet
-          const p = parsePlayer(res[0].transcript);
-          if (!p) continue;
-          const now = performance.now();
-          if (now - this.last < 400) continue;   // Sicherheits-Entprellung
-          this.last = now;
-          if (S.matchOver) { toast("Match ist beendet"); return; }
-          addPoint(p);
-          winAnim(p);
-        }
+        const i = e.results.length - 1;      // jüngste Äußerung
+        const p = parsePlayer(e.results[i][0].transcript);
+        if (!p || i === this.consumedIdx) return;   // pro Äußerung genau einmal werten
+        this.consumedIdx = i;
+        if (S.matchOver) { toast("Match ist beendet"); return; }
+        addPoint(p);
+        winAnim(p);
       };
       rec.onerror = (e) => {
         if (e.error === "not-allowed" || e.error === "service-not-allowed") {
@@ -294,18 +292,17 @@
     toggle() { this.active ? this.stop() : this.start(); },
   };
 
-  function setVoiceUI() { updateVoiceBtn(); }   // ein gemeinsamer Modus-Knopf für Sprache/Ton
-  function updateVoiceBtn() {
-    const b = $("modeBtn");
-    if (!b) return;
-    const m = S.inputMode;
-    const show = activeView === "score" && m !== "tap";
-    b.hidden = !show;
-    if (!show) { b.classList.remove("live"); return; }
-    if (m === "voice") { b.textContent = "🎤"; b.title = "Sprache aktivieren: „eins/zwei“ sagen"; }
-    else { b.textContent = "🎧"; b.title = "Auto-Rally aktivieren (Ton)"; }
-    const live = (m === "voice" && Voice.active) || (m === "auto" && AutoRally.active);
-    b.classList.toggle("live", live);
+  /* Das Banner ist Status UND Start/Stopp für Sprache/Ton (kein Topbar-Knopf mehr). */
+  function setVoiceUI() { updateMicBanner(); }
+  function updateVoiceBtn() { updateMicBanner(); }   // Alias für Altaufrufer
+  function updateMicBanner() {
+    const el = $("autoBanner"); if (!el) return;
+    if (activeView !== "score" || S.inputMode === "tap") { el.hidden = true; el.classList.remove("pending"); return; }
+    if (S.inputMode === "auto" && AutoRally.active) return;   // AutoRally steuert das Banner selbst
+    el.hidden = false; el.classList.remove("pending");
+    el.textContent = S.inputMode === "voice"
+      ? (Voice.active ? "🎤 Sprache aktiv · „eins/zwei“ sagen — tippen = Stopp" : "🎤 Sprache – tippen zum Starten")
+      : "🎧 Auto-Rally – tippen zum Starten";
   }
 
   /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
@@ -316,6 +313,24 @@
     const app = document.querySelector(".app");
     if (app) app.dataset.eff = eff;
   }
+
+  /* Bildschirm anlassen (Wake Lock API; iOS ab Safari 16.4). Wird bei Wieder-
+     Sichtbarkeit neu angefordert, da das Lock beim Tab-Wechsel verfällt. */
+  const Wake = {
+    lock: null,
+    async apply() {
+      if (S.keepAwake && document.visibilityState === "visible" && "wakeLock" in navigator) {
+        if (this.lock) return;
+        try {
+          this.lock = await navigator.wakeLock.request("screen");
+          this.lock.addEventListener("release", () => { this.lock = null; });
+        } catch (_) {}
+      } else if (this.lock) {
+        try { this.lock.release(); } catch (_) {}
+        this.lock = null;
+      }
+    },
+  };
 
   /* ====================== Auto-Rally (Ton, 2 Spieler) ======================
      Hört per Web Audio die Schläge eines Ballwechsels, erkennt das Rally-Ende
@@ -395,13 +410,13 @@
       if (!Voice.supported) return;   // ohne Spracherkennung: nur Tippen
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
-      rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = false;
+      rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = true;
+      let consumed = -1;
+      rec.onstart = () => { consumed = -1; };
       rec.onresult = (e) => {
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (!e.results[i].isFinal) continue;
-          const p = parsePlayer(e.results[i][0].transcript);
-          if (p) { this.assign(p); return; }
-        }
+        const i = e.results.length - 1;
+        const p = parsePlayer(e.results[i][0].transcript);
+        if (p && i !== consumed) { consumed = i; this.assign(p); }
       };
       rec.onerror = () => {};
       rec.onend = () => { if (this.state === "pending" && this.active) { try { rec.start(); } catch (_) {} } };
@@ -440,11 +455,11 @@
     $("undoBtn").addEventListener("click", undo);
     $("newMatchBtn").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("winnerNew").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
-    $("modeBtn").addEventListener("click", () => {
+    $("autoBanner").addEventListener("click", () => {
       if (S.inputMode === "voice") Voice.toggle();
       else if (S.inputMode === "auto") AutoRally.toggle();
     });
-    updateVoiceBtn();
+    updateMicBanner();
 
     document.querySelectorAll("#tabs button").forEach((b) =>
       b.addEventListener("click", () => switchView(b.dataset.view)));
@@ -474,6 +489,7 @@
       S.matchFirstServer = +b.dataset.fs; pickSegment($("firstServeSel"), S.matchFirstServer, "fs"); saveCfg(); render();
     });
     $("scoreVibrate").addEventListener("change", (e) => { S.vibrate = e.target.checked; saveCfg(); });
+    $("wakeToggle").addEventListener("change", (e) => { S.keepAwake = e.target.checked; saveCfg(); Wake.apply(); });
     $("layoutSel").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       S.layout = b.dataset.lay; pickSegment($("layoutSel"), S.layout, "lay"); saveCfg(); applyLayout();
@@ -481,11 +497,16 @@
     $("inputSel").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       Voice.stop(true); AutoRally.stop();           // laufenden Modus beenden
-      S.inputMode = b.dataset.inp; pickSegment($("inputSel"), S.inputMode, "inp"); saveCfg(); updateVoiceBtn();
+      S.inputMode = b.dataset.inp; pickSegment($("inputSel"), S.inputMode, "inp"); saveCfg();
+      if (S.inputMode === "voice") Voice.start();    // Auswahl-Tipp = Geste → Mikro darf starten
+      else if (S.inputMode === "auto") AutoRally.start();
+      updateMicBanner();
     });
     window.addEventListener("resize", applyLayout);
     window.addEventListener("orientationchange", applyLayout);
     applyLayout();
+    document.addEventListener("visibilitychange", () => Wake.apply());
+    Wake.apply();
 
     render();
   }
