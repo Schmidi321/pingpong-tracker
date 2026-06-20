@@ -128,6 +128,7 @@ body {
   background: var(--bg-elev); border: 1px solid var(--line); border-bottom: none;
   border-radius: 26px 26px 0 0; padding: 12px 20px max(22px, env(safe-area-inset-bottom));
   box-shadow: var(--shadow); animation: slideUp .25s ease;
+  max-height: 88vh; overflow-y: auto;
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .sheet-handle { width: 42px; height: 5px; background: var(--line); border-radius: 99px; margin: 4px auto 14px; }

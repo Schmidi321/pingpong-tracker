@@ -24,8 +24,7 @@
         <span>TT&nbsp;Zähler</span>
       </div>
       <div class="topbar-actions">
-        <button id="autoBtn" class="icon-btn" aria-label="Auto-Rally (Ton)" title="Auto-Rally: Ballwechsel per Ton erkennen" hidden>🎧</button>
-        <button id="voiceBtn" class="icon-btn" aria-label="Sprachsteuerung" title="Sprache: sag „eins“ oder „zwei“" hidden>🎤</button>
+        <button id="modeBtn" class="icon-btn" aria-label="Eingabe aktivieren" hidden>🎤</button>
         <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
       </div>
     </header>
@@ -140,6 +139,15 @@
       <input class="text-input" id="inName1" type="text" maxlength="14" placeholder="Spieler 1" />
       <label class="field-label" style="margin-top:14px;display:block">Spieler 2</label>
       <input class="text-input" id="inName2" type="text" maxlength="14" placeholder="Spieler 2" />
+
+      <div class="setting-row">
+        <label class="field-label">Punkte-Eingabe</label>
+        <div class="segmented three" id="inputSel">
+          <button data-inp="tap" class="active">👆 Tippen</button>
+          <button data-inp="voice">🎤 Sprache</button>
+          <button data-inp="auto">🎧 Ton</button>
+        </div>
+      </div>
 
       <div class="setting-row">
         <label class="field-label">Sätze (Best of)</label>

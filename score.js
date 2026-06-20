@@ -23,6 +23,7 @@
     matchFirstServer: 1,
     vibrate: true,
     layout: "auto",          // "auto" | "portrait" | "landscape"
+    inputMode: "tap",        // "tap" | "voice" | "auto"
     matchOver: false,
     history: [],
   };
@@ -185,7 +186,7 @@
   function saveCfg() {
     try {
       localStorage.setItem("tt.cfg", JSON.stringify({
-        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout,
+        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, inp: S.inputMode,
       }));
     } catch (e) {}
   }
@@ -195,7 +196,7 @@
       if (!c) return;
       if (c.names) S.names = c.names;
       S.ppg = c.ppg || 11; S.bestOf = c.bestOf || 5;
-      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto";
+      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.inputMode = c.inp || "tap";
     } catch (e) {}
   }
   function pickSegment(container, value, attr) {
@@ -209,6 +210,7 @@
     pickSegment($("ppgSel"), S.ppg, "pp");
     pickSegment($("firstServeSel"), S.matchFirstServer, "fs");
     pickSegment($("layoutSel"), S.layout, "lay");
+    pickSegment($("inputSel"), S.inputMode, "inp");
     $("scoreVibrate").checked = S.vibrate;
   }
 
@@ -292,15 +294,18 @@
     toggle() { this.active ? this.stop() : this.start(); },
   };
 
-  function setVoiceUI(on) {
-    const b = $("voiceBtn");
-    if (b) b.classList.toggle("live", on);
-  }
+  function setVoiceUI() { updateVoiceBtn(); }   // ein gemeinsamer Modus-Knopf für Sprache/Ton
   function updateVoiceBtn() {
-    const vb = $("voiceBtn");
-    if (vb) vb.hidden = !(Voice.supported && activeView === "score");
-    const ab = $("autoBtn");
-    if (ab) ab.hidden = activeView !== "score";
+    const b = $("modeBtn");
+    if (!b) return;
+    const m = S.inputMode;
+    const show = activeView === "score" && m !== "tap";
+    b.hidden = !show;
+    if (!show) { b.classList.remove("live"); return; }
+    if (m === "voice") { b.textContent = "🎤"; b.title = "Sprache aktivieren: „eins/zwei“ sagen"; }
+    else { b.textContent = "🎧"; b.title = "Auto-Rally aktivieren (Ton)"; }
+    const live = (m === "voice" && Voice.active) || (m === "auto" && AutoRally.active);
+    b.classList.toggle("live", live);
   }
 
   /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
@@ -317,7 +322,7 @@
      (Pause nach Schlägen) und fragt den Gewinner ab: per Stimme ("eins/zwei")
      ODER Tippen der Spielerhälfte. Punkt landet im normalen Zähler.
      Die Ton-Erkennung ist – wie der Rally-Modus – am Tisch feinzutunen. */
-  function setAutoUI(on) { const b = $("autoBtn"); if (b) b.classList.toggle("live", on); }
+  function setAutoUI() { updateVoiceBtn(); }   // -> gemeinsamer Modus-Knopf
   function hideAutoBanner() { const el = $("autoBanner"); if (el) { el.hidden = true; el.classList.remove("pending"); } }
   function showAutoBanner(mode, hits) {
     const el = $("autoBanner"); if (!el) return;
@@ -435,8 +440,10 @@
     $("undoBtn").addEventListener("click", undo);
     $("newMatchBtn").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("winnerNew").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
-    $("voiceBtn").addEventListener("click", () => Voice.toggle());
-    $("autoBtn").addEventListener("click", () => AutoRally.toggle());
+    $("modeBtn").addEventListener("click", () => {
+      if (S.inputMode === "voice") Voice.toggle();
+      else if (S.inputMode === "auto") AutoRally.toggle();
+    });
     updateVoiceBtn();
 
     document.querySelectorAll("#tabs button").forEach((b) =>
@@ -470,6 +477,11 @@
     $("layoutSel").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       S.layout = b.dataset.lay; pickSegment($("layoutSel"), S.layout, "lay"); saveCfg(); applyLayout();
+    });
+    $("inputSel").addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      Voice.stop(true); AutoRally.stop();           // laufenden Modus beenden
+      S.inputMode = b.dataset.inp; pickSegment($("inputSel"), S.inputMode, "inp"); saveCfg(); updateVoiceBtn();
     });
     window.addEventListener("resize", applyLayout);
     window.addEventListener("orientationchange", applyLayout);
