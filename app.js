@@ -19,7 +19,7 @@ const state = {
   rallies: 0,
   lastHit: 0,
   rallyTimeoutMs: 2500,
-  sensitivity: 0.5, // 0..1
+  sensitivity: 0.75, // 0..1 (höher = empfindlicher)
   vibrate: true,
   facing: "environment", // "environment" (hinten) | "user" (vorne)
 };
@@ -127,13 +127,16 @@ const audio = {
       const v = Math.abs(this.buf[i] - 128) / 128;
       if (v > peak) peak = v;
     }
-    // gleitender Grundpegel (nur wenn leise) für die Auto-Kalibrierung
-    if (peak < 0.08) this.noiseFloor = this.noiseFloor * 0.95 + peak * 0.05;
+    // gleitender Grundpegel (nur in leisen Phasen nachführen)
+    if (peak < this.noiseFloor + 0.02) this.noiseFloor = this.noiseFloor * 0.97 + peak * 0.03;
 
-    // Schwelle: invertierte Empfindlichkeit, oberhalb des Grundpegels
-    const threshold = Math.max(this.noiseFloor + 0.04, 1 - state.sensitivity);
-    $("audioMeter").style.width = Math.min(100, peak * 100) + "%";
-    $("thresholdMarker").style.left = Math.min(100, threshold * 100) + "%";
+    // Schwelle dicht über dem Grundpegel; Empfindlichkeit steuert die Marge
+    // (sens 0 → +0.15 unempfindlich … sens 1 → +0.008 sehr empfindlich)
+    const threshold = this.noiseFloor + (0.15 - state.sensitivity * 0.142);
+    // Anzeige verstärkt (Gain), damit auch leise Ball-Pegel sichtbar werden
+    const GAIN = 300;
+    $("audioMeter").style.width = Math.min(100, peak * GAIN) + "%";
+    $("thresholdMarker").style.left = Math.min(100, threshold * GAIN) + "%";
 
     // Hysterese gegen Mehrfachzählung eines Schlags
     if (this.armed && peak >= threshold) {
@@ -352,7 +355,7 @@ function init() {
   $("vibrateToggle").addEventListener("change", (e) => (state.vibrate = e.target.checked));
 
   setMode("manual");
-  setSensitivity(0.5);
+  setSensitivity(0.75);
   render();
   housekeeping();
 }

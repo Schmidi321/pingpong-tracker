@@ -239,11 +239,13 @@
   /* ----------------------- Sprachsteuerung ---------------------- */
   /* "eins"/"1" → Punkt für Spieler 1, "zwei"/"2" → Spieler 2.
      Web Speech API (Chrome/Edge/Android), braucht Mikrofon + HTTPS. */
+  const ONES = ["1", "eins", "ein", "eis", "einz", "ans", "heins", "reins"];
+  const TWOS = ["2", "zwei", "zwo", "zwai", "zwein", "zweit", "swei", "schwei"];
   function parsePlayer(txt) {
     let p = 0;
     for (const t of txt.toLowerCase().replace(/[.,!?]/g, " ").split(/\s+/)) {
-      if (t === "1" || t === "eins" || t === "ein" || t === "eis") p = 1;
-      else if (t === "2" || t === "zwei" || t === "zwo" || t === "zwein") p = 2;
+      if (ONES.includes(t)) p = 1;
+      else if (TWOS.includes(t)) p = 2;
     }
     return p; // die zuletzt genannte Zahl gewinnt
   }
@@ -260,10 +262,13 @@
       rec.lang = "de-DE";
       rec.continuous = true;
       rec.interimResults = true;             // sofort reagieren (Zwischenergebnisse)
+      rec.maxAlternatives = 4;               // mehr Kandidaten → „eins/zwei“ öfter erkannt
       rec.onstart = () => { this.consumedIdx = -1; };
       rec.onresult = (e) => {
         const i = e.results.length - 1;      // jüngste Äußerung
-        const p = parsePlayer(e.results[i][0].transcript);
+        const r = e.results[i];
+        let p = 0;
+        for (let a = 0; a < r.length; a++) { p = parsePlayer(r[a].transcript); if (p) break; }
         if (!p || i === this.consumedIdx) return;   // pro Äußerung genau einmal werten
         this.consumedIdx = i;
         if (S.matchOver) { toast("Match ist beendet"); return; }
@@ -382,8 +387,8 @@
       this.analyser.getByteTimeDomainData(this.buf);
       let peak = 0;
       for (let i = 0; i < this.buf.length; i++) { const v = Math.abs(this.buf[i] - 128) / 128; if (v > peak) peak = v; }
-      if (peak < 0.08) this.noiseFloor = this.noiseFloor * 0.95 + peak * 0.05;
-      const threshold = Math.max(this.noiseFloor + 0.05, 0.15);
+      if (peak < this.noiseFloor + 0.02) this.noiseFloor = this.noiseFloor * 0.97 + peak * 0.03;
+      const threshold = this.noiseFloor + 0.04;   // dicht über Grundpegel = empfindlich
       const now = performance.now();
       if (this.state === "listening") {
         if (this.armed && peak >= threshold) {
@@ -410,12 +415,14 @@
       if (!Voice.supported) return;   // ohne Spracherkennung: nur Tippen
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
-      rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = true;
+      rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 4;
       let consumed = -1;
       rec.onstart = () => { consumed = -1; };
       rec.onresult = (e) => {
         const i = e.results.length - 1;
-        const p = parsePlayer(e.results[i][0].transcript);
+        const r = e.results[i];
+        let p = 0;
+        for (let a = 0; a < r.length; a++) { p = parsePlayer(r[a].transcript); if (p) break; }
         if (p && i !== consumed) { consumed = i; this.assign(p); }
       };
       rec.onerror = () => {};
