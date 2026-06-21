@@ -239,20 +239,25 @@
   /* ----------------------- Sprachsteuerung ---------------------- */
   /* "eins"/"1" → Punkt für Spieler 1, "zwei"/"2" → Spieler 2.
      Web Speech API (Chrome/Edge/Android), braucht Mikrofon + HTTPS. */
-  const ONES = ["1", "eins", "ein", "eis", "einz", "ans", "heins", "reins"];
-  const TWOS = ["2", "zwei", "zwo", "zwai", "zwein", "zweit", "swei", "schwei"];
+  const ONES = ["1", "eins", "ein", "eis", "einz", "ans", "heins", "reins", "blau"];
+  const TWOS = ["2", "zwei", "zwo", "zwai", "zwein", "zweit", "swei", "schwei", "orange"];
   function parsePlayer(txt) {
+    const low = txt.toLowerCase();
+    // Spielernamen (falls gesetzt) erkennen
+    const n1 = (S.names[1] || "").toLowerCase(), n2 = (S.names[2] || "").toLowerCase();
+    if (n1 && n1 !== "spieler 1" && low.includes(n1)) return 1;
+    if (n2 && n2 !== "spieler 2" && low.includes(n2)) return 2;
     let p = 0;
-    for (const t of txt.toLowerCase().replace(/[.,!?]/g, " ").split(/\s+/)) {
+    for (const t of low.replace(/[.,!?]/g, " ").split(/\s+/)) {
       if (ONES.includes(t)) p = 1;
       else if (TWOS.includes(t)) p = 2;
     }
-    return p; // die zuletzt genannte Zahl gewinnt
+    return p; // sonst: zuletzt genannte Zahl/Farbe
   }
 
   const Voice = {
     supported: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
-    rec: null, active: false, consumedIdx: -1,
+    rec: null, active: false, lastP: 0, lastT: 0,
 
     start() {
       if (!this.supported) { toast("Sprachsteuerung wird hier nicht unterstützt"); return; }
@@ -262,15 +267,15 @@
       rec.lang = "de-DE";
       rec.continuous = true;
       rec.interimResults = true;             // sofort reagieren (Zwischenergebnisse)
-      rec.maxAlternatives = 4;               // mehr Kandidaten → „eins/zwei“ öfter erkannt
-      rec.onstart = () => { this.consumedIdx = -1; };
+      rec.maxAlternatives = 4;               // mehr Kandidaten → öfter erkannt
       rec.onresult = (e) => {
-        const i = e.results.length - 1;      // jüngste Äußerung
-        const r = e.results[i];
+        const r = e.results[e.results.length - 1];
         let p = 0;
         for (let a = 0; a < r.length; a++) { p = parsePlayer(r[a].transcript); if (p) break; }
-        if (!p || i === this.consumedIdx) return;   // pro Äußerung genau einmal werten
-        this.consumedIdx = i;
+        if (!p) return;
+        const now = performance.now();
+        if (p === this.lastP && now - this.lastT < 900) return;  // gleiche Eingabe zu schnell → ignorieren
+        this.lastP = p; this.lastT = now;
         if (S.matchOver) { toast("Match ist beendet"); return; }
         addPoint(p);
         winAnim(p);
@@ -416,14 +421,13 @@
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
       rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 4;
-      let consumed = -1;
-      rec.onstart = () => { consumed = -1; };
+      let done = false;
       rec.onresult = (e) => {
-        const i = e.results.length - 1;
-        const r = e.results[i];
+        if (done) return;
+        const r = e.results[e.results.length - 1];
         let p = 0;
         for (let a = 0; a < r.length; a++) { p = parsePlayer(r[a].transcript); if (p) break; }
-        if (p && i !== consumed) { consumed = i; this.assign(p); }
+        if (p) { done = true; this.assign(p); }
       };
       rec.onerror = () => {};
       rec.onend = () => { if (this.state === "pending" && this.active) { try { rec.start(); } catch (_) {} } };
