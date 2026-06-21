@@ -324,20 +324,51 @@
     if (app) app.dataset.eff = eff;
   }
 
-  /* Bildschirm anlassen (Wake Lock API; iOS ab Safari 16.4). Wird bei Wieder-
-     Sichtbarkeit neu angefordert, da das Lock beim Tab-Wechsel verfällt. */
+  /* Bildschirm anlassen: Wake Lock API (iOS ab Safari 16.4) + ein unsichtbares
+     Canvas-Video als Fallback/Ergänzung ("NoSleep"-Trick). Grund: in der
+     installierten iOS-PWA fällt das Wake-Lock öfters still wieder weg, ohne
+     dass "visibilitychange" feuert (Seite bleibt sichtbar) – dann dimmt das
+     Display nach ein paar Minuten trotzdem. Der Video-Trick hält zusätzlich
+     wach und wird per Intervall regelmäßig neu abgesichert. */
   const Wake = {
-    lock: null,
+    lock: null, vid: null, drawTimer: null,
+    ensureVideo() {
+      if (this.vid) return this.vid;
+      const canvas = document.createElement("canvas");
+      canvas.width = 2; canvas.height = 2;
+      const ctx = canvas.getContext("2d");
+      let toggle = false;
+      const draw = () => {
+        toggle = !toggle;
+        ctx.fillStyle = toggle ? "#000" : "#010101";
+        ctx.fillRect(0, 0, 2, 2);
+      };
+      draw();
+      const stream = canvas.captureStream(1);
+      const video = document.createElement("video");
+      video.muted = true;
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      video.style.cssText = "position:fixed;bottom:0;right:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1;";
+      video.srcObject = stream;
+      document.body.appendChild(video);
+      this.drawTimer = setInterval(draw, 1000);
+      this.vid = video;
+      return video;
+    },
     async apply() {
-      if (S.keepAwake && document.visibilityState === "visible" && "wakeLock" in navigator) {
-        if (this.lock) return;
-        try {
-          this.lock = await navigator.wakeLock.request("screen");
-          this.lock.addEventListener("release", () => { this.lock = null; });
-        } catch (_) {}
-      } else if (this.lock) {
-        try { this.lock.release(); } catch (_) {}
-        this.lock = null;
+      if (S.keepAwake && document.visibilityState === "visible") {
+        if ("wakeLock" in navigator && !this.lock) {
+          try {
+            this.lock = await navigator.wakeLock.request("screen");
+            this.lock.addEventListener("release", () => { this.lock = null; });
+          } catch (_) {}
+        }
+        const v = this.ensureVideo();
+        v.play().catch(() => {});
+      } else {
+        if (this.lock) { try { this.lock.release(); } catch (_) {} this.lock = null; }
+        if (this.vid) this.vid.pause();
       }
     },
   };
@@ -518,6 +549,8 @@
     applyLayout();
     document.addEventListener("visibilitychange", () => Wake.apply());
     Wake.apply();
+    setInterval(() => Wake.apply(), 20000);  // gegen stilles Verfallen des Locks (v.a. iOS)
+    document.addEventListener("pointerdown", () => Wake.apply(), { once: true }); // erste Geste: Video darf starten
 
     render();
   }
