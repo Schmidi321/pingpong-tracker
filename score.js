@@ -274,7 +274,7 @@
         for (let a = 0; a < r.length; a++) { p = parsePlayer(r[a].transcript); if (p) break; }
         if (!p) return;
         const now = performance.now();
-        if (p === this.lastP && now - this.lastT < 900) return;  // gleiche Eingabe zu schnell → ignorieren
+        if (p === this.lastP && now - this.lastT < 2500) return;
         this.lastP = p; this.lastT = now;
         if (S.matchOver) { toast("Match ist beendet"); return; }
         addPoint(p);
