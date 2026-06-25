@@ -23,7 +23,6 @@
     matchFirstServer: 1,
     vibrate: true,
     layout: "auto",          // "auto" | "portrait" | "landscape"
-    inputMode: "tap",        // "tap" | "voice" | "auto"
     keepAwake: true,
     matchOver: false,
     history: [],
@@ -187,7 +186,7 @@
   function saveCfg() {
     try {
       localStorage.setItem("tt.cfg", JSON.stringify({
-        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, inp: S.inputMode, wake: S.keepAwake,
+        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, wake: S.keepAwake,
       }));
     } catch (e) {}
   }
@@ -197,7 +196,7 @@
       if (!c) return;
       if (c.names) S.names = c.names;
       S.ppg = c.ppg || 11; S.bestOf = c.bestOf || 5;
-      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.inputMode = c.inp || "tap"; S.keepAwake = c.wake !== false;
+      S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.keepAwake = c.wake !== false;
     } catch (e) {}
   }
   function pickSegment(container, value, attr) {
@@ -211,7 +210,6 @@
     pickSegment($("ppgSel"), S.ppg, "pp");
     pickSegment($("firstServeSel"), S.matchFirstServer, "fs");
     pickSegment($("layoutSel"), S.layout, "lay");
-    pickSegment($("inputSel"), S.inputMode, "inp");
     $("scoreVibrate").checked = S.vibrate;
     $("wakeToggle").checked = S.keepAwake;
   }
@@ -302,17 +300,17 @@
     toggle() { this.active ? this.stop() : this.start(); },
   };
 
-  /* Das Banner ist Status UND Start/Stopp für Sprache/Ton (kein Topbar-Knopf mehr). */
-  function setVoiceUI() { updateMicBanner(); }
-  function updateVoiceBtn() { updateMicBanner(); }   // Alias für Altaufrufer
+  function setVoiceUI() {
+    updateMicBanner();
+    const btn = $(“voiceBtn”);
+    if (btn) { btn.textContent = Voice.active ? “🎤 Stopp” : “🎤 Farbe”; btn.classList.toggle(“live”, Voice.active); }
+  }
+  function updateVoiceBtn() { setVoiceUI(); }
   function updateMicBanner() {
-    const el = $("autoBanner"); if (!el) return;
-    if (activeView !== "score" || S.inputMode === "tap") { el.hidden = true; el.classList.remove("pending"); return; }
-    if (S.inputMode === "auto" && AutoRally.active) return;   // AutoRally steuert das Banner selbst
-    el.hidden = false; el.classList.remove("pending");
-    el.textContent = S.inputMode === "voice"
-      ? (Voice.active ? "🎤 Sprache aktiv · „eins/zwei“ sagen — tippen = Stopp" : "🎤 Sprache – tippen zum Starten")
-      : "🎧 Auto-Rally – tippen zum Starten";
+    const el = $(“autoBanner”); if (!el) return;
+    if (activeView !== “score” || !Voice.active) { el.hidden = true; el.classList.remove(“pending”); return; }
+    el.hidden = false; el.classList.remove(“pending”);
+    el.textContent = “🎤 Sprache aktiv · „blau” / „orange” sagen — tippen = Stopp”;
   }
 
   /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
@@ -497,10 +495,8 @@
     $("undoBtn").addEventListener("click", undo);
     $("newMatchBtn").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("winnerNew").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
-    $("autoBanner").addEventListener("click", () => {
-      if (S.inputMode === "voice") Voice.toggle();
-      else if (S.inputMode === "auto") AutoRally.toggle();
-    });
+    $("autoBanner").addEventListener("click", () => Voice.toggle());
+    $("voiceBtn").addEventListener("click", () => Voice.toggle());
     updateMicBanner();
 
     document.querySelectorAll("#tabs button").forEach((b) =>
@@ -536,14 +532,6 @@
       const b = e.target.closest("button"); if (!b) return;
       S.layout = b.dataset.lay; pickSegment($("layoutSel"), S.layout, "lay"); saveCfg(); applyLayout();
     });
-    $("inputSel").addEventListener("click", (e) => {
-      const b = e.target.closest("button"); if (!b) return;
-      Voice.stop(true); AutoRally.stop();           // laufenden Modus beenden
-      S.inputMode = b.dataset.inp; pickSegment($("inputSel"), S.inputMode, "inp"); saveCfg();
-      if (S.inputMode === "voice") Voice.start();    // Auswahl-Tipp = Geste → Mikro darf starten
-      else if (S.inputMode === "auto") AutoRally.start();
-      updateMicBanner();
-    });
     window.addEventListener("resize", applyLayout);
     window.addEventListener("orientationchange", applyLayout);
     applyLayout();
@@ -551,6 +539,15 @@
     Wake.apply();
     setInterval(() => Wake.apply(), 20000);  // gegen stilles Verfallen des Locks (v.a. iOS)
     document.addEventListener("pointerdown", () => Wake.apply(), { once: true }); // erste Geste: Video darf starten
+
+    const splashBtn = $("splashBtn");
+    if (splashBtn) {
+      setTimeout(() => { splashBtn.hidden = false; }, 2000);
+      splashBtn.addEventListener("click", () => {
+        const sp = $("splash");
+        if (sp) { sp.classList.add("fade-out"); setTimeout(() => sp.remove(), 400); }
+      });
+    }
 
     render();
   }

@@ -17,6 +17,24 @@
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
 </head>
 <body>
+  <div id="splash" class="splash">
+    <div class="splash-inner">
+      <div class="splash-logo">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M 46 72 Q 42 87 44 97 L 58 97 Q 60 87 56 72 Z" fill="#38bdf8"/>
+          <circle cx="50" cy="44" r="30" fill="#0f2338" stroke="#38bdf8" stroke-width="3.5"/>
+          <circle cx="50" cy="44" r="24.5" fill="#f97316"/>
+          <path d="M 27 38 Q 50 56 73 38" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" fill="none"/>
+          <path d="M 28 48 Q 50 64 72 48" stroke="rgba(255,255,255,0.16)" stroke-width="1.5" fill="none"/>
+          <circle cx="82" cy="15" r="10" fill="white"/>
+          <circle cx="79" cy="12" r="3" fill="rgba(255,255,255,0.55)"/>
+        </svg>
+      </div>
+      <h1 class="splash-title">TT&nbsp;Zähler</h1>
+      <p class="splash-desc">Punkte &amp; Ballwechsel –<br>einfach &amp; schnell zählen</p>
+      <button id="splashBtn" class="btn btn-primary splash-btn" hidden>Los geht's!</button>
+    </div>
+  </div>
   <div class="app">
     <header class="topbar">
       <div class="brand">
@@ -79,6 +97,7 @@
 
       <footer class="controls">
         <button class="btn btn-ghost" id="undoBtn">↶&nbsp;Undo</button>
+        <button class="btn btn-mic" id="voiceBtn">🎤 Farbe</button>
         <button class="btn btn-primary" id="newMatchBtn">Neues Match</button>
       </footer>
     </main>
@@ -139,15 +158,6 @@
       <input class="text-input" id="inName1" type="text" maxlength="14" placeholder="Spieler 1" />
       <label class="field-label" style="margin-top:14px;display:block">Spieler 2</label>
       <input class="text-input" id="inName2" type="text" maxlength="14" placeholder="Spieler 2" />
-
-      <div class="setting-row">
-        <label class="field-label">Punkte-Eingabe</label>
-        <div class="segmented three" id="inputSel">
-          <button data-inp="tap" class="active">👆 Tippen</button>
-          <button data-inp="voice">🎤 Sprache</button>
-          <button data-inp="auto">🎧 Ton</button>
-        </div>
-      </div>
 
       <div class="setting-row">
         <label class="field-label">Sätze (Best of)</label>

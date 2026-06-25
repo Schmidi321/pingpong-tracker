@@ -310,3 +310,49 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 @keyframes bannerPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,.5); } 50% { box-shadow: 0 0 0 7px rgba(249,115,22,0); } }
 .scoreboard.await-pick .half { animation: pickPulse 1.1s ease-in-out infinite; }
 @keyframes pickPulse { 0%, 100% { box-shadow: inset 0 0 0 0 rgba(56,189,248,0); } 50% { box-shadow: inset 0 0 0 3px rgba(56,189,248,.55); } }
+
+/* ===================== Splash-Screen ===================== */
+#splash {
+  position: fixed; inset: 0; z-index: 999;
+  background:
+    radial-gradient(900px 500px at 50% 42%, #1b2a4a 0%, transparent 70%),
+    var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.4s ease;
+}
+#splash.fade-out { opacity: 0; pointer-events: none; }
+.splash-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  padding: max(48px, env(safe-area-inset-top)) 28px max(48px, env(safe-area-inset-bottom));
+  text-align: center;
+}
+.splash-logo svg {
+  width: 140px; height: 140px;
+  filter: drop-shadow(0 10px 32px rgba(56,189,248,0.45));
+}
+.splash-title {
+  font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em;
+  margin: 4px 0 0; color: var(--text);
+}
+.splash-desc { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 270px; }
+.splash-btn {
+  margin-top: 10px; padding: 16px 52px; font-size: 1.15rem;
+  animation: splashBtnIn 0.45s cubic-bezier(.2,1.2,.3,1) both;
+}
+@keyframes splashBtnIn {
+  from { opacity: 0; transform: translateY(16px) scale(.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ===================== Farbe-Sagen-Button ===================== */
+.btn-mic {
+  background: rgba(56,189,248,0.10);
+  color: var(--accent);
+  border: 1.5px solid rgba(56,189,248,0.35);
+}
+.btn-mic.live {
+  background: rgba(56,189,248,0.22);
+  border-color: var(--accent);
+  animation: micpulse 1.3s ease-in-out infinite;
+}
+#view-score .controls .btn { flex: 1; }
