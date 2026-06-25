@@ -1,7 +1,7 @@
 {
   "id": "/pingpong-tracker/",
-  "name": "TT Zähler – Tischtennis Punkte & Rally",
-  "short_name": "TT Zähler",
+  "name": "Ping Pong Counter",
+  "short_name": "Ping Pong",
   "description": "Tischtennis-Punktezähler und Ballwechsel-Zähler (Kamera, Ton oder Tippen).",
   "lang": "de",
   "start_url": "./",
