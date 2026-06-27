@@ -542,7 +542,10 @@
 
     const splashBtn = $("splashBtn");
     if (splashBtn) {
-      setTimeout(() => { splashBtn.hidden = false; }, 2000);
+      setTimeout(() => {
+        splashBtn.hidden = false;
+        requestAnimationFrame(() => requestAnimationFrame(() => splashBtn.classList.add("show")));
+      }, 2000);
       splashBtn.addEventListener("click", () => {
         const sp = $("splash");
         if (sp) { sp.classList.add("fade-out"); setTimeout(() => sp.remove(), 400); }
