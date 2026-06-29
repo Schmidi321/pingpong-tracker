@@ -287,7 +287,7 @@
       this.rec = rec; this.active = true;
       try { rec.start(); } catch (_) {}
       setVoiceUI(true);
-      toast("🎤 Sprache an – sag „eins“ oder „zwei“");
+      toast("Sprache an - sag 'eins' oder 'zwei'");
     },
 
     stop(silent) {
@@ -302,15 +302,15 @@
 
   function setVoiceUI() {
     updateMicBanner();
-    const btn = $(“voiceBtn”);
-    if (btn) { btn.textContent = Voice.active ? “🎤 Stopp” : “🎤 Farbe”; btn.classList.toggle(“live”, Voice.active); }
+    const btn = $("voiceBtn");
+    if (btn) { btn.textContent = Voice.active ? "🎤 Stopp" : "🎤 Farbe"; btn.classList.toggle("live", Voice.active); }
   }
   function updateVoiceBtn() { setVoiceUI(); }
   function updateMicBanner() {
-    const el = $(“autoBanner”); if (!el) return;
-    if (activeView !== “score” || !Voice.active) { el.hidden = true; el.classList.remove(“pending”); return; }
-    el.hidden = false; el.classList.remove(“pending”);
-    el.textContent = “🎤 Sprache aktiv · „blau” / „orange” sagen — tippen = Stopp”;
+    const el = $("autoBanner"); if (!el) return;
+    if (activeView !== "score" || !Voice.active) { el.hidden = true; el.classList.remove("pending"); return; }
+    el.hidden = false; el.classList.remove("pending");
+    el.textContent = "Sprache aktiv - 'blau' / 'orange' sagen - tippen = Stopp";
   }
 
   /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
@@ -382,7 +382,7 @@
     const el = $("autoBanner"); if (!el) return;
     el.hidden = false;
     el.classList.toggle("pending", mode === "pending");
-    if (mode === "pending") el.textContent = `🏁 Punkt! (${hits} Schläge) – wer? „eins/zwei“ sagen oder tippen`;
+    if (mode === "pending") el.textContent = `🏁 Punkt! (${hits} Schläge) - wer? 'eins/zwei' sagen oder tippen`;
     else if (mode === "done") el.textContent = "🏆 Match beendet";
     else el.textContent = hits > 0 ? `🎧 Ballwechsel läuft · ${hits} Schläge` : "🎧 Auto-Rally aktiv · spielt los";
   }
