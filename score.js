@@ -80,6 +80,17 @@
       osc.stop(ac.currentTime + start + dur + 0.03);
     }
     function seq(notes, type, gain) { notes.forEach((n) => tone(n[0], n[1], n[2], type, gain)); }
+    function speak(text) {
+      if (!S.sound || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "de-DE";
+        utterance.rate = 1.02;
+        utterance.pitch = 1.05;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      } catch (_) {}
+    }
     return {
       matchball() { seq([[392, 0, .10], [523, .12, .12], [659, .25, .16]], "triangle", .11); },
       win() { seq([[523, 0, .12], [659, .12, .12], [784, .24, .18], [1046, .43, .28]], "sine", .13); },
@@ -88,6 +99,7 @@
         seq(finale
           ? [[392, 0, .10], [523, .11, .10], [659, .22, .12], [784, .36, .15], [1046, .55, .35]]
           : [[440, 0, .10], [660, .13, .12], [880, .30, .18]], "triangle", finale ? .13 : .1);
+        if (finale) speak(value + " Ballwechsel. Der Hammer!");
       },
       enabled() { return S.sound; },
     };

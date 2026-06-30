@@ -22,16 +22,25 @@ const state = {
   sensitivity: 0.75, // 0..1 (höher = empfindlicher)
   vibrate: true,
   facing: "environment", // "environment" (hinten) | "user" (vorne)
+  audioLeadInIgnored: false,
   milestonesShown: new Set(),
 };
 
 /* -------------------------------------------------------------------- */
 /* Zähl-Kern                                                            */
 /* -------------------------------------------------------------------- */
-function registerHit() {
+function registerHit(source) {
   const now = performance.now();
   // Bei zu langer Pause zuerst den alten Ballwechsel abschließen.
   if (state.current > 0 && now - state.lastHit > state.rallyTimeoutMs) endRally();
+  if (source === "audio" && state.current === 0 && state.audioLeadInIgnored && now - state.lastHit > state.rallyTimeoutMs) {
+    state.audioLeadInIgnored = false;
+  }
+  if (source === "audio" && state.current === 0 && !state.audioLeadInIgnored) {
+    state.audioLeadInIgnored = true;
+    state.lastHit = now;
+    return;
+  }
   state.current += 1;
   state.lastHit = now;
   if (state.current > state.longest) state.longest = state.current;
@@ -195,7 +204,7 @@ const audio = {
     // Hysterese gegen Mehrfachzählung eines Schlags
     if (this.armed && peak >= threshold) {
       this.armed = false;
-      registerHit();
+      registerHit("audio");
     } else if (!this.armed && peak < threshold * 0.55) {
       this.armed = true;
     }
