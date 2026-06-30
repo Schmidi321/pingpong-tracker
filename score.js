@@ -97,9 +97,9 @@
       milestone(value) {
         const finale = value >= 100;
         seq(finale
-          ? [[392, 0, .10], [523, .11, .10], [659, .22, .12], [784, .36, .15], [1046, .55, .35]]
+          ? [[392, 0, .10], [523, .11, .10], [659, .22, .12], [784, .36, .15], [1046, .55, .35], [784, .92, .18], [1046, 1.08, .28]]
           : [[440, 0, .10], [660, .13, .12], [880, .30, .18]], "triangle", finale ? .13 : .1);
-        if (finale) speak(value + " Ballwechsel. Der Hammer!");
+        if (finale) speak("Die " + value + " ist erreicht, ihr Helden.");
       },
       enabled() { return S.sound; },
     };

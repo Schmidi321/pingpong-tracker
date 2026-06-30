@@ -56,6 +56,7 @@ function endRally() {
   state.rallies += 1;
   const wasRecord = state.current === state.longest && state.current > 1;
   state.current = 0;
+  state.audioLeadInIgnored = false;
   state.milestonesShown.clear();
   render();
   if (wasRecord) showToast("🏆 Neuer Rekord: " + state.last + " Schläge");
@@ -64,6 +65,7 @@ function endRally() {
 
 function resetAll() {
   state.current = state.longest = state.last = state.rallies = 0;
+  state.audioLeadInIgnored = false;
   state.lastHit = 0;
   state.milestonesShown.clear();
   render();
@@ -83,6 +85,8 @@ function housekeeping() {
 /* -------------------------------------------------------------------- */
 function render() {
   $("currentValue").textContent = state.current;
+  const audioCount = $("audioCount");
+  if (audioCount) audioCount.textContent = state.current;
   $("longestValue").textContent = state.longest;
   $("lastValue").textContent = state.last;
   $("rallyCount").textContent = state.rallies;
@@ -390,6 +394,8 @@ function setMode(mode) {
     const list = el.dataset.for.split(" ");
     el.hidden = !list.includes(mode);
   });
+  const sensitivityLabel = $("sensitivityLabel");
+  if (sensitivityLabel) sensitivityLabel.textContent = mode === "audio" ? "Ton-Empfindlichkeit" : "Kamera-Empfindlichkeit";
   if (!state.running) $("toggleBtn").textContent = mode === "visual" ? "Kamera starten" : "Start";
 }
 
