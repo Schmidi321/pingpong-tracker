@@ -84,16 +84,6 @@
             <span class="serve" id="serveP2" aria-label="Aufschlag">🏓</span>
           </div>
         </button>
-
-        <div class="voice-popup" id="voicePopup" hidden role="status" aria-live="polite">
-          <div class="voice-dot">🎤</div>
-          <div>
-            <strong>Sprache aktiv</strong>
-            <span>Sag 'blau' oder 'orange'.</span>
-          </div>
-          <button id="voicePopupClose" type="button" aria-label="Sprachsteuerung stoppen">Stopp</button>
-        </div>
-
         <div class="winner" id="winner" hidden>
           <div class="winner-card">
             <div class="winner-emoji">🏆</div>
@@ -117,9 +107,9 @@
         <div class="counter-label">Ballwechsel · aktuell</div>
         <div class="counter-value" id="currentValue">0</div>
         <div class="counter-sub">
-          <div><span id="longestValue">0</span><small>längster</small></div>
-          <div><span id="lastValue">0</span><small>letzter</small></div>
-          <div><span id="rallyCount">0</span><small>Ballwechsel</small></div>
+          <div><span id="longestValue">0</span><small>Bestwert</small></div>
+          <div><span id="lastValue">0</span><small>Letzter</small></div>
+          <div><span id="rallyCount">0</span><small>Runden</small></div>
         </div>
       </div>
 
@@ -252,9 +242,9 @@
     <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
     <div class="help-backdrop" id="helpBackdrop" hidden>
       <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-        <div class="help-icon">🏓</div>
+        <div class="help-icon" id="helpIcon">🏓</div>
         <h2 id="helpTitle">Kurz starten</h2>
-        <p>Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und sag 'blau' oder 'orange'.</p>
+        <p id="helpText">Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und sag 'blau' oder 'orange'.</p>
         <button class="btn btn-primary full" id="helpOk" type="button">OK</button>
       </div>
     </div>

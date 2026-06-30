@@ -21,14 +21,15 @@ body {
     radial-gradient(1200px 600px at 50% -10%, #1b2a4a 0%, transparent 60%),
     var(--bg);
   color: var(--text);
-  min-height: 100dvh;
-  overflow-x: hidden;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .app {
   max-width: 480px;
   margin: 0 auto;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
@@ -74,8 +75,8 @@ body {
 .counter-sub small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
 
 /* Mode area */
-.mode-area { flex: 1; display: flex; }
-.mode-panel { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.mode-area { flex: 1; min-height: 0; display: flex; }
+.mode-panel { width: 100%; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
 .mode-panel[hidden] { display: none; }
 
 .video-wrap { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #000;
@@ -175,7 +176,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: .15s; }
 .tabs button.active { background: var(--card); color: var(--text); box-shadow: 0 2px 10px rgba(0,0,0,.3); }
 
-.view { position: relative; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+.view { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
 .view[hidden] { display: none; }
 
 /* ===================== Scoreboard ===================== */
@@ -287,12 +288,24 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 
 /* Tablet: mehr Breite & etwas größere Bedienelemente */
 @media (min-width: 700px) {
-  .app { max-width: 760px; }
-  .tabs button { font-size: 16px; padding: 13px 4px; }
-  .btn { font-size: 18px; }
+  .app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
 @media (min-width: 700px) and (orientation: landscape) {
-  .app { max-width: 1000px; }
+  .app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
 
 /* ===================== Auto-Rally (2-Spieler Ton) ===================== */
@@ -359,14 +372,15 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   font-size: 23px;
 }
 .btn-mic.live {
-  background: rgba(56,189,248,0.22);
-  border-color: var(--accent);
+  background: rgba(244,63,94,0.20);
+  color: #fff;
+  border-color: var(--danger);
   animation: micpulse 1.3s ease-in-out infinite;
 }
 #view-score .controls .btn:not(.btn-mic) { flex: 1; }
 #view-score .controls .btn-mic { flex: 0 0 58px; }
 
-/* ===================== Hilfe & Sprach-Popup ===================== */
+/* ===================== Hilfe ===================== */
 .help-backdrop {
   position: fixed; inset: 0; z-index: 90;
   display: flex; align-items: center; justify-content: center;
@@ -381,21 +395,58 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .help-icon { font-size: 42px; line-height: 1; margin-bottom: 10px; }
 .help-card h2 { font-size: 22px; margin-bottom: 8px; }
 .help-card p { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 18px; }
-.voice-popup {
-  position: absolute; left: 50%; top: 50%; z-index: 7;
-  transform: translate(-50%, -50%);
-  display: flex; align-items: center; gap: 12px;
-  min-width: min(86%, 320px); padding: 13px 14px;
-  background: rgba(19, 28, 49, .94); border: 1px solid rgba(56,189,248,.45);
-  border-radius: 16px; box-shadow: var(--shadow); backdrop-filter: blur(6px);
+
+/* ===================== Rally kompakt ===================== */
+#view-rally {
+  gap: 8px;
 }
-.voice-popup[hidden] { display: none; }
-.voice-dot { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
-  background: rgba(56,189,248,.16); animation: micpulse 1.3s ease-in-out infinite; }
-.voice-popup strong, .voice-popup span { display: block; }
-.voice-popup strong { font-size: 15px; }
-.voice-popup span { color: var(--muted); font-size: 13px; margin-top: 2px; }
-.voice-popup button {
-  margin-left: auto; border: 1px solid var(--line); background: var(--bg); color: var(--text);
-  border-radius: 10px; padding: 8px 10px; font-weight: 700;
+#view-rally .counter-card {
+  flex: 0 0 auto;
+  padding: 10px 12px 8px;
+  border-radius: 16px;
+}
+#view-rally .counter-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+#view-rally .counter-value {
+  font-size: clamp(48px, 14dvh, 76px);
+  margin: 0 0 8px;
+}
+#view-rally .counter-sub {
+  padding-top: 8px;
+}
+#view-rally .counter-sub span {
+  font-size: 20px;
+}
+#view-rally .counter-sub small {
+  font-size: 10px;
+  letter-spacing: .4px;
+}
+#view-rally .video-wrap {
+  flex: 1 1 auto;
+  min-height: 120px;
+  max-height: 32dvh;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+}
+#view-rally .hint {
+  font-size: 12px;
+  line-height: 1.25;
+}
+#view-rally .controls {
+  flex: 0 0 auto;
+  padding-top: 0;
+}
+#view-rally .btn {
+  padding: 13px 12px;
+  font-size: 15px;
+}
+@media (max-height: 680px) {
+  .topbar { padding-bottom: 8px; }
+  .tabs { margin-bottom: 8px; }
+  #view-rally .counter-value { font-size: clamp(42px, 12dvh, 62px); }
+  #view-rally .counter-card { padding: 8px 10px 7px; }
+  #view-rally .video-wrap { max-height: 28dvh; }
+  #view-rally .hint { display: none; }
 }

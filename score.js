@@ -216,6 +216,7 @@
 
   /* --------------------------- Sheet/Tabs ----------------------- */
   let activeView = "score";
+  let showHelp = () => {};
   const openScoreSheet = () => { syncSettingsUI(); $("scoreSheet").hidden = false; $("sheetBackdrop").hidden = false; };
   const closeScoreSheet = () => { $("scoreSheet").hidden = true; $("sheetBackdrop").hidden = true; };
 
@@ -232,6 +233,7 @@
     if (v !== "rally" && typeof window.__rallyStop === "function") window.__rallyStop();
     if (v !== "score") { Voice.stop(true); AutoRally.stop(); }   // Mikro-Features nur im Punkte-Tab
     updateVoiceBtn();
+    if (v === "rally") showHelp("rally");
   }
 
   /* ----------------------- Sprachsteuerung ---------------------- */
@@ -299,21 +301,12 @@
       this.active = false;
       if (this.rec) { try { this.rec.stop(); } catch (_) {} this.rec = null; }
       setVoiceUI(false);
-      hideVoicePopup();
       if (!silent) toast("Sprache aus");
     },
 
     toggle() { this.active ? this.stop() : this.start(); },
   };
 
-  function showVoicePopup() {
-    const pop = $("voicePopup");
-    if (pop) pop.hidden = activeView !== "score" || !Voice.active;
-  }
-  function hideVoicePopup() {
-    const pop = $("voicePopup");
-    if (pop) pop.hidden = true;
-  }
   function setVoiceUI() {
     const btn = $("voiceBtn");
     if (btn) {
@@ -322,10 +315,10 @@
       btn.setAttribute("aria-label", Voice.active ? "Sprachsteuerung stoppen" : "Sprachsteuerung starten");
       btn.title = Voice.active ? "Sprachsteuerung stoppen" : "Sprachsteuerung starten";
     }
-    if (Voice.active) showVoicePopup(); else hideVoicePopup();
   }
   function updateVoiceBtn() { setVoiceUI(); }
-  function updateMicBanner() { hideVoicePopup(); }
+  function updateMicBanner() {}
+
   /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
   function applyLayout() {
     const eff = S.layout === "auto"
@@ -510,7 +503,6 @@
     $("winnerNew").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("autoBanner").addEventListener("click", () => Voice.toggle());
     $("voiceBtn").addEventListener("click", () => Voice.toggle());
-    $("voicePopupClose").addEventListener("click", () => Voice.stop());
     updateMicBanner();
 
     document.querySelectorAll("#tabs button").forEach((b) =>
@@ -554,13 +546,33 @@
     setInterval(() => Wake.apply(), 20000);  // gegen stilles Verfallen des Locks (v.a. iOS)
     document.addEventListener("pointerdown", () => Wake.apply(), { once: true }); // erste Geste: Video darf starten
 
-    const showFirstHelp = () => {
+    const helpCopy = {
+      score: {
+        key: "tt.helpScoreSeen",
+        icon: "🏓",
+        title: "Kurz starten",
+        text: "Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und sag 'blau' oder 'orange'.",
+      },
+      rally: {
+        key: "tt.helpRallySeen",
+        icon: "🔁",
+        title: "Rally kurz erklärt",
+        text: "Kamera starten und spielen. Bestwert ist dein laengster Ballwechsel, Letzter der zuletzt beendete, Runden die Anzahl der Ballwechsel.",
+      },
+    };
+    showHelp = (kind) => {
+      const cfg = helpCopy[kind];
+      if (!cfg) return;
       try {
-        if (localStorage.getItem("tt.helpSeen") === "1") return;
-        localStorage.setItem("tt.helpSeen", "1");
+        if (localStorage.getItem(cfg.key) === "1") return;
+        localStorage.setItem(cfg.key, "1");
       } catch (_) {}
       const help = $("helpBackdrop");
-      if (help) help.hidden = false;
+      if (!help) return;
+      $("helpIcon").textContent = cfg.icon;
+      $("helpTitle").textContent = cfg.title;
+      $("helpText").textContent = cfg.text;
+      help.hidden = false;
     };
     $("helpOk").addEventListener("click", () => { $("helpBackdrop").hidden = true; });
 
@@ -568,11 +580,12 @@
     if (splashBtn) {
       splashBtn.addEventListener("click", () => {
         const sp = $("splash");
-        if (sp) { sp.classList.add("fade-out"); setTimeout(() => { sp.remove(); showFirstHelp(); }, 400); }
+        if (sp) { sp.classList.add("fade-out"); setTimeout(() => { sp.remove(); showHelp("score"); }, 400); }
       });
     } else {
-      setTimeout(showFirstHelp, 300);
+      setTimeout(() => showHelp("score"), 300);
     }
+
     render();
   }
 
