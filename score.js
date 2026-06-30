@@ -224,6 +224,8 @@
   function switchView(v) {
     const dir = (VIEW_ORDER[v] >= VIEW_ORDER[activeView]) ? "anim-r" : "anim-l";
     activeView = v;
+    const app = document.querySelector(".app");
+    if (app) app.dataset.view = v;
     $("view-score").hidden = v !== "score";
     $("view-rally").hidden = v !== "rally";
     const el = $("view-" + v);
@@ -295,6 +297,7 @@
         return;
       }
       setVoiceUI(true);
+      toast("Sprache aktiviert");
     },
 
     stop(silent) {
@@ -580,9 +583,11 @@
     if (splashBtn) {
       splashBtn.addEventListener("click", () => {
         const sp = $("splash");
+        document.body.classList.remove("splashing");
         if (sp) { sp.classList.add("fade-out"); setTimeout(() => { sp.remove(); showHelp("score"); }, 400); }
       });
     } else {
+      document.body.classList.remove("splashing");
       setTimeout(() => showHelp("score"), 300);
     }
 

@@ -16,7 +16,7 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
 </head>
-<body>
+<body class="splashing">
   <div id="splash" class="splash">
     <div class="splash-inner">
       <div class="splash-logo">
@@ -32,7 +32,7 @@
       </div>
       <h1 class="splash-title">Ping Pong<br>Counter</h1>
       <p class="splash-desc">Punkte &amp; Ballwechsel –<br>einfach &amp; schnell zählen</p>
-      <button id="splashBtn" class="btn btn-primary splash-btn" onclick="var s=document.getElementById('splash');if(s){s.classList.add('fade-out');setTimeout(function(){s.remove()},400)}">Los geht's!</button>
+      <button id="splashBtn" class="btn btn-primary splash-btn" onclick="document.body.classList.remove('splashing');var s=document.getElementById('splash');if(s){s.classList.add('fade-out');setTimeout(function(){s.remove()},400)}">Los geht's!</button>
     </div>
   </div>
   <div class="app">

@@ -35,6 +35,10 @@ body {
   padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 }
 
+body.splashing .app {
+  visibility: hidden;
+}
+
 /* Topbar */
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 2px 14px; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 800; letter-spacing: .3px; font-size: 18px; }
@@ -288,26 +292,13 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 
 /* Tablet: mehr Breite & etwas größere Bedienelemente */
 @media (min-width: 700px) {
-  .app {
-  max-width: 480px;
-  margin: 0 auto;
-  height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  .app { max-width: 760px; }
+  .tabs button { font-size: 16px; padding: 13px 4px; }
+  .btn { font-size: 18px; }
 }
 @media (min-width: 700px) and (orientation: landscape) {
-  .app {
-  max-width: 480px;
-  margin: 0 auto;
-  height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  .app { max-width: 1000px; }
 }
-
 /* ===================== Auto-Rally (2-Spieler Ton) ===================== */
 .auto-banner {
   position: absolute; left: 0; right: 0; top: 0; z-index: 8;
@@ -327,10 +318,11 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 
 /* ===================== Splash-Screen ===================== */
 #splash {
-  position: fixed; inset: 0; z-index: 999;
+  position: fixed; inset: 0; z-index: 9999;
   background:
     radial-gradient(900px 500px at 50% 42%, #1b2a4a 0%, transparent 70%),
     var(--bg);
+  min-height: 100dvh;
   display: flex; align-items: center; justify-content: center;
   transition: opacity 0.4s ease;
 }
@@ -350,7 +342,12 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 }
 .splash-desc { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 270px; }
 .splash-btn {
-  margin-top: 10px; padding: 11px 32px; font-size: 0.95rem;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 148px;
+  margin-top: 10px;
+  padding: 12px 32px;
+  font-size: 0.95rem;
   animation: splashBtnIn 0.45s 2s cubic-bezier(.2,1.2,.3,1) both;
 }
 @keyframes splashBtnIn {
@@ -360,16 +357,17 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 
 /* ===================== Sprach-Button ===================== */
 .btn-mic {
-  flex: 0 0 58px;
+  flex: 0 0 54px;
   padding: 0;
-  min-height: 58px;
+  min-height: 54px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(56,189,248,0.10);
-  color: var(--accent);
-  border: 1.5px solid rgba(56,189,248,0.35);
-  font-size: 23px;
+  background: rgba(52,211,153,0.18);
+  color: var(--ok);
+  border: 1.5px solid rgba(52,211,153,0.55);
+  font-size: 31px;
+  line-height: 1;
 }
 .btn-mic.live {
   background: rgba(244,63,94,0.20);
@@ -378,8 +376,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   animation: micpulse 1.3s ease-in-out infinite;
 }
 #view-score .controls .btn:not(.btn-mic) { flex: 1; }
-#view-score .controls .btn-mic { flex: 0 0 58px; }
-
+#view-score .controls .btn-mic { flex: 0 0 54px; }
 /* ===================== Hilfe ===================== */
 .help-backdrop {
   position: fixed; inset: 0; z-index: 90;
@@ -397,56 +394,89 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .help-card p { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 18px; }
 
 /* ===================== Rally kompakt ===================== */
+.app[data-view="rally"] .topbar {
+  padding: 0 2px 6px;
+}
+.app[data-view="rally"] .brand {
+  font-size: 14px;
+}
+.app[data-view="rally"] .brand .dot {
+  width: 9px;
+  height: 9px;
+}
+.app[data-view="rally"] .icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+.app[data-view="rally"] .tabs {
+  margin-bottom: 8px;
+}
+.app[data-view="rally"] .tabs button {
+  padding: 8px 4px;
+  font-size: 14px;
+}
 #view-rally {
   gap: 8px;
 }
 #view-rally .counter-card {
   flex: 0 0 auto;
-  padding: 10px 12px 8px;
-  border-radius: 16px;
+  padding: 8px 10px 7px;
+  border-radius: 14px;
 }
 #view-rally .counter-label {
   font-size: 10px;
-  letter-spacing: 1px;
+  letter-spacing: .8px;
 }
 #view-rally .counter-value {
-  font-size: clamp(48px, 14dvh, 76px);
-  margin: 0 0 8px;
+  font-size: clamp(42px, 11dvh, 62px);
+  margin: 0 0 6px;
 }
 #view-rally .counter-sub {
-  padding-top: 8px;
+  padding-top: 7px;
 }
 #view-rally .counter-sub span {
-  font-size: 20px;
+  font-size: 18px;
 }
 #view-rally .counter-sub small {
-  font-size: 10px;
-  letter-spacing: .4px;
+  font-size: 9px;
+  letter-spacing: .3px;
+}
+#view-rally .mode-area {
+  flex: 1 1 auto;
 }
 #view-rally .video-wrap {
   flex: 1 1 auto;
-  min-height: 120px;
-  max-height: 32dvh;
-  aspect-ratio: 16 / 9;
+  min-height: 210px;
+  max-height: 48dvh;
+  aspect-ratio: 4 / 3;
   border-radius: 14px;
 }
+#view-rally .meter {
+  height: 6px;
+}
 #view-rally .hint {
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.2;
 }
 #view-rally .controls {
   flex: 0 0 auto;
   padding-top: 0;
+  gap: 8px;
 }
 #view-rally .btn {
-  padding: 13px 12px;
-  font-size: 15px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  font-size: 14px;
 }
-@media (max-height: 680px) {
-  .topbar { padding-bottom: 8px; }
-  .tabs { margin-bottom: 8px; }
-  #view-rally .counter-value { font-size: clamp(42px, 12dvh, 62px); }
-  #view-rally .counter-card { padding: 8px 10px 7px; }
-  #view-rally .video-wrap { max-height: 28dvh; }
+@media (max-height: 720px) {
+  .app[data-view="rally"] { padding-top: max(8px, env(safe-area-inset-top)); }
+  .app[data-view="rally"] .topbar { padding-bottom: 4px; }
+  .app[data-view="rally"] .tabs { margin-bottom: 6px; }
+  #view-rally .counter-value { font-size: clamp(34px, 9dvh, 52px); }
+  #view-rally .counter-card { padding: 6px 9px; }
+  #view-rally .counter-sub span { font-size: 16px; }
+  #view-rally .counter-sub small { font-size: 8px; }
+  #view-rally .video-wrap { min-height: 190px; max-height: 46dvh; }
   #view-rally .hint { display: none; }
 }
