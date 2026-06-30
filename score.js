@@ -24,6 +24,9 @@
     vibrate: true,
     layout: "auto",          // "auto" | "portrait" | "landscape"
     keepAwake: true,
+    sound: true,
+    showHelp: true,
+    lastBallSoundKey: "",
     matchOver: false,
     history: [],
   };
@@ -52,6 +55,45 @@
   const toast = (m) => { if (typeof showToast === "function") showToast(m); };
   const buzz = (ms) => { if (S.vibrate && navigator.vibrate) navigator.vibrate(ms); };
 
+  const Sound = (() => {
+    let ctx = null;
+    function audioCtx() {
+      if (!S.sound) return null;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = ctx || new AC();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      return ctx;
+    }
+    function tone(freq, start, dur, type, gainValue) {
+      const ac = audioCtx();
+      if (!ac) return;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = type || "sine";
+      osc.frequency.setValueAtTime(freq, ac.currentTime + start);
+      gain.gain.setValueAtTime(0.0001, ac.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(gainValue || 0.12, ac.currentTime + start + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + start + dur);
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.start(ac.currentTime + start);
+      osc.stop(ac.currentTime + start + dur + 0.03);
+    }
+    function seq(notes, type, gain) { notes.forEach((n) => tone(n[0], n[1], n[2], type, gain)); }
+    return {
+      matchball() { seq([[392, 0, .10], [523, .12, .12], [659, .25, .16]], "triangle", .11); },
+      win() { seq([[523, 0, .12], [659, .12, .12], [784, .24, .18], [1046, .43, .28]], "sine", .13); },
+      milestone(value) {
+        const finale = value >= 100;
+        seq(finale
+          ? [[392, 0, .10], [523, .11, .10], [659, .22, .12], [784, .36, .15], [1046, .55, .35]]
+          : [[440, 0, .10], [660, .13, .12], [880, .30, .18]], "triangle", finale ? .13 : .1);
+      },
+      enabled() { return S.sound; },
+    };
+  })();
+  window.__ppSound = Sound;
+
   /* -------------------------------------------------------------- */
   function addPoint(p) {
     if (S.matchOver) return;
@@ -65,7 +107,7 @@
       S.sets[p]++;                       // Satz gewonnen
       if (S.sets[p] >= setsToWin()) {
         S.matchOver = true;
-        render(); winAnim(p); buzz(40); showWinner(p);
+        render(); winAnim(p); buzz(40); Sound.win(); showWinner(p);
         return;
       }
       S.points[1] = 0; S.points[2] = 0;  // nächster Satz
@@ -73,7 +115,7 @@
       toast("Satz für " + S.names[p] + " · Seitenwechsel");
       return;
     }
-    render(); buzz(14); pointPulse(p);
+    render(); buzz(14); pointPulse(p); playBallCue();
   }
 
   function undo() {
@@ -86,7 +128,7 @@
 
   function newMatch() {
     S.points = { 1: 0, 2: 0 }; S.sets = { 1: 0, 2: 0 };
-    S.matchOver = false; S.history = [];
+    S.matchOver = false; S.history = []; S.lastBallSoundKey = "";
     $("winner").hidden = true;
     render();
     if (typeof AutoRally !== "undefined" && AutoRally.active) AutoRally.beginRally();
@@ -186,7 +228,7 @@
   function saveCfg() {
     try {
       localStorage.setItem("tt.cfg", JSON.stringify({
-        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, wake: S.keepAwake,
+        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, wake: S.keepAwake, snd: S.sound, help: S.showHelp,
       }));
     } catch (e) {}
   }
@@ -197,6 +239,7 @@
       if (c.names) S.names = c.names;
       S.ppg = c.ppg || 11; S.bestOf = c.bestOf || 5;
       S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.keepAwake = c.wake !== false;
+      S.sound = c.snd !== false; S.showHelp = c.help !== false;
     } catch (e) {}
   }
   function pickSegment(container, value, attr) {
@@ -211,7 +254,23 @@
     pickSegment($("firstServeSel"), S.matchFirstServer, "fs");
     pickSegment($("layoutSel"), S.layout, "lay");
     $("scoreVibrate").checked = S.vibrate;
-    $("wakeToggle").checked = S.keepAwake;
+        $("wakeToggle").checked = S.keepAwake;
+    syncGlobalToggles();
+  }
+  function syncGlobalToggles() {
+    ["soundToggle", "rallySoundToggle"].forEach((id) => { const el = $(id); if (el) el.checked = S.sound; });
+    ["helpToggle", "rallyHelpToggle"].forEach((id) => { const el = $(id); if (el) el.checked = S.showHelp; });
+  }
+  function playBallCue() {
+    const need = setsToWin();
+    let key = "";
+    for (const p of [1, 2]) {
+      const o = other(p);
+      const wouldWinGame = S.points[p] + 1 >= S.ppg && S.points[p] + 1 - S.points[o] >= 2;
+      if (wouldWinGame && S.sets[p] + 1 >= need) key = `${p}:${S.points[1]}:${S.points[2]}:${S.sets[1]}:${S.sets[2]}`;
+    }
+    if (key && key !== S.lastBallSoundKey) { S.lastBallSoundKey = key; Sound.matchball(); }
+    if (!key) S.lastBallSoundKey = "";
   }
 
   /* --------------------------- Sheet/Tabs ----------------------- */
@@ -219,6 +278,7 @@
   let showHelp = () => {};
   const openScoreSheet = () => { syncSettingsUI(); $("scoreSheet").hidden = false; $("sheetBackdrop").hidden = false; };
   const closeScoreSheet = () => { $("scoreSheet").hidden = true; $("sheetBackdrop").hidden = true; };
+  window.__syncScoreSettings = syncGlobalToggles;
 
   const VIEW_ORDER = { score: 0, rally: 1 };
   function switchView(v) {
@@ -235,6 +295,7 @@
     if (v !== "rally" && typeof window.__rallyStop === "function") window.__rallyStop();
     if (v !== "score") { Voice.stop(true); AutoRally.stop(); }   // Mikro-Features nur im Punkte-Tab
     updateVoiceBtn();
+    if (v === "score") showHelp("score");
     if (v === "rally") showHelp("rally");
   }
 
@@ -537,6 +598,14 @@
     });
     $("scoreVibrate").addEventListener("change", (e) => { S.vibrate = e.target.checked; saveCfg(); });
     $("wakeToggle").addEventListener("change", (e) => { S.keepAwake = e.target.checked; saveCfg(); Wake.apply(); });
+    ["soundToggle", "rallySoundToggle"].forEach((id) => {
+      const el = $(id); if (!el) return;
+      el.addEventListener("change", (e) => { S.sound = e.target.checked; syncGlobalToggles(); saveCfg(); });
+    });
+    ["helpToggle", "rallyHelpToggle"].forEach((id) => {
+      const el = $(id); if (!el) return;
+      el.addEventListener("change", (e) => { S.showHelp = e.target.checked; syncGlobalToggles(); saveCfg(); });
+    });
     $("layoutSel").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       S.layout = b.dataset.lay; pickSegment($("layoutSel"), S.layout, "lay"); saveCfg(); applyLayout();
@@ -566,10 +635,7 @@
     showHelp = (kind) => {
       const cfg = helpCopy[kind];
       if (!cfg) return;
-      try {
-        if (localStorage.getItem(cfg.key) === "1") return;
-        localStorage.setItem(cfg.key, "1");
-      } catch (_) {}
+      if (!S.showHelp) return;
       const help = $("helpBackdrop");
       if (!help) return;
       $("helpIcon").textContent = cfg.icon;
@@ -578,6 +644,13 @@
       help.hidden = false;
     };
     $("helpOk").addEventListener("click", () => { $("helpBackdrop").hidden = true; });
+    syncGlobalToggles();
+
+    const splashInfo = $("splashInfo");
+    const splashCompany = $("splashCompany");
+    if (splashCompany && splashInfo) splashCompany.addEventListener("click", () => { splashInfo.hidden = false; });
+    const splashInfoOk = $("splashInfoOk");
+    if (splashInfoOk && splashInfo) splashInfoOk.addEventListener("click", () => { splashInfo.hidden = true; });
 
     const splashBtn = $("splashBtn");
     if (splashBtn) {

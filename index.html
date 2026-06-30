@@ -32,8 +32,15 @@
       </div>
       <h1 class="splash-title">Ping Pong<br>Counter</h1>
       <p class="splash-desc">Punkte &amp; Ballwechsel –<br>einfach &amp; schnell zählen</p>
-      <button id="splashBtn" class="btn btn-primary splash-btn" onclick="document.body.classList.remove('splashing');var s=document.getElementById('splash');if(s){s.classList.add('fade-out');setTimeout(function(){s.remove()},400)}">Los geht's!</button>
-      <div class="splash-company">APpReich</div>
+      <button id="splashBtn" class="btn btn-primary splash-btn" type="button">Los geht's!</button>
+      <button id="splashCompany" class="splash-company" type="button">APpReich</button>
+      <div class="splash-info" id="splashInfo" hidden>
+        <div class="splash-info-card" role="dialog" aria-modal="true" aria-labelledby="splashInfoTitle">
+          <h2 id="splashInfoTitle">APpReich</h2>
+          <p>Kleine, einfache Apps aus der Praxis: Ping Pong Counter hilft beim schnellen Zaehlen von Punkten und Ballwechseln.</p>
+          <button class="btn btn-primary full" id="splashInfoOk" type="button">OK</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="app">
@@ -201,6 +208,22 @@
         <label class="switch"><input type="checkbox" id="wakeToggle" checked /> Bildschirm anlassen</label>
       </div>
 
+      <div class="setting-row toggles">
+        <label class="switch"><input type="checkbox" id="soundToggle" checked /> Soundeffekte</label>
+      </div>
+
+      <div class="setting-row toggles">
+        <label class="switch"><input type="checkbox" id="helpToggle" checked /> Kurze Erklaerungen anzeigen</label>
+      </div>
+
+      <div class="setting-row support-box">
+        <label class="field-label">Support</label>
+        <p class="settings-note">Fragen, Feedback oder eine kleine Spende fuer die Weiterentwicklung.</p>
+        <div class="support-actions">
+          <a class="btn btn-mini" href="mailto:m_schmitti@gmx.de?subject=Ping%20Pong%20Counter%20Support">Support</a>
+          <a class="btn btn-mini donate" href="https://www.paypal.com/donate/?business=m_schmitti%40gmx.de&amp;currency_code=EUR" target="_blank" rel="noopener">Spenden</a>
+        </div>
+      </div>
       <button class="btn btn-primary full" id="scoreSheetSave">Übernehmen &amp; neues Match</button>
     </div>
 
@@ -235,6 +258,23 @@
 
       <div class="setting-row toggles">
         <label class="switch"><input type="checkbox" id="vibrateToggle" checked /> Vibration bei Schlag</label>
+      </div>
+
+      <div class="setting-row toggles">
+        <label class="switch"><input type="checkbox" id="rallySoundToggle" checked /> Soundeffekte</label>
+      </div>
+
+      <div class="setting-row toggles">
+        <label class="switch"><input type="checkbox" id="rallyHelpToggle" checked /> Kurze Erklaerungen anzeigen</label>
+      </div>
+
+      <div class="setting-row support-box">
+        <label class="field-label">Support</label>
+        <p class="settings-note">Fragen, Feedback oder eine kleine Spende fuer die Weiterentwicklung.</p>
+        <div class="support-actions">
+          <a class="btn btn-mini" href="mailto:m_schmitti@gmx.de?subject=Ping%20Pong%20Counter%20Support">Support</a>
+          <a class="btn btn-mini donate" href="https://www.paypal.com/donate/?business=m_schmitti%40gmx.de&amp;currency_code=EUR" target="_blank" rel="noopener">Spenden</a>
+        </div>
       </div>
 
       <button class="btn btn-primary full" id="closeSheet">Fertig</button>

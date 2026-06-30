@@ -86,15 +86,29 @@ function checkMilestone() {
   showMilestone(state.current);
 }
 
+function milestoneCopy(value) {
+  const messages = [
+    { at: 25, kicker: "Warmgelaufen", sub: "25 am Stueck - sauberer Rhythmus!" },
+    { at: 50, kicker: "Maschine", sub: "50 Treffer - das laeuft rund!" },
+    { at: 75, kicker: "Fokus-Level", sub: "75 Schlaege - Nerven behalten!" },
+    { at: 100, kicker: "Century Rally", sub: "100! Extra-Applaus fuer euch." },
+  ];
+  const exact = messages.find((m) => m.at === value);
+  if (exact) return exact;
+  return { kicker: "Weiter so", sub: value + " Schlaege - naechste Marke wartet!" };
+}
+
 function showMilestone(value) {
   const el = $("milestoneOverlay");
   if (!el) return;
   const finale = value >= 100;
+  const copy = milestoneCopy(value);
+  if (window.__ppSound && typeof window.__ppSound.milestone === "function") window.__ppSound.milestone(value);
   el.innerHTML = `
     <div class="milestone-card ${finale ? "finale" : ""}">
-      <div class="milestone-kicker">${finale ? "Century Rally" : "Rally-Meilenstein"}</div>
+      <div class="milestone-kicker">${copy.kicker}</div>
       <div class="milestone-number">${value}</div>
-      <div class="milestone-sub">${finale ? "100 Schlaege - irre!" : "Schlaege am Stueck"}</div>
+      <div class="milestone-sub">${copy.sub}</div>
     </div>
   `;
   for (let i = 0; i < 28; i++) {
@@ -397,7 +411,10 @@ function init() {
   $("tapPad").addEventListener("click", () => { if (state.running) registerHit(); else showToast("Erst Start drücken"); });
 
   // Einstellungs-Sheet
-  const openSheet = () => { $("settingsSheet").hidden = false; $("sheetBackdrop").hidden = false; };
+  const openSheet = () => {
+    if (typeof window.__syncScoreSettings === "function") window.__syncScoreSettings();
+    $("settingsSheet").hidden = false; $("sheetBackdrop").hidden = false;
+  };
   const closeSheet = () => { $("settingsSheet").hidden = true; $("sheetBackdrop").hidden = true; };
   window.__openRallySettings = openSheet;   // vom ⚙-Button (score.js) aufgerufen
   window.__rallyStop = stop;                 // beim Tab-Wechsel: Kamera/Mikro freigeben
