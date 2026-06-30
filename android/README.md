@@ -42,3 +42,7 @@ bubblewrap build
 - Kamera/Mikro brauchen HTTPS und die normalen Browser-Berechtigungen.
 - Wenn Digital Asset Links nicht stimmen, startet Android die Seite als Custom Tab statt als echte fullscreen TWA.
 - Fuer Play Store Screenshots koennen die vorhandenen `screenshots/screen-score.png` und `screenshots/screen-rally.png` als Grundlage dienen.
+## Ergaenzende Unterlagen
+
+- PLAY_STORE_CHECKLIST.md: Play-Console-Texte, Testplan und offene Punkte.
+- PRIVACY_POLICY_DRAFT.md: Entwurf fuer die Datenschutzseite.

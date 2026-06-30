@@ -143,7 +143,7 @@ body.splashing .app {
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .sheet-handle { width: 42px; height: 5px; background: var(--line); border-radius: 99px; margin: 4px auto 14px; }
-.sheet h2 { font-size: 20px; margin-bottom: 18px; }
+.sheet h2 { font-size: 24px; margin-bottom: 18px; }
 
 .field-label, .setting-head label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
 
@@ -288,7 +288,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .app[data-eff="landscape"] .divlabel,
 .app[data-eff="landscape"] .divhint { flex: 0 0 auto; text-align: center; }
 .app[data-eff="landscape"] .setscore { justify-content: center; }
-.app[data-eff="landscape"] .controls { padding-top: 10px; }
+.app[data-eff="landscape"] .controls { padding-top: 12px; }
 
 /* Tablet: mehr Breite & etwas größere Bedienelemente */
 @media (min-width: 700px) {
@@ -372,7 +372,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .btn-mic {
   flex: 0 0 54px;
   padding: 0;
-  min-height: 54px;
+  min-height: 72px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -396,7 +396,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 #view-score .half-bot { min-height: 24px; }
 #view-score .pname { font-size: 16px; }
 #view-score .divider { gap: 6px; }
-#view-score .setscore { font-size: 20px; }
+#view-score .setscore { font-size: 24px; }
 @media (max-height: 720px) {
   .app { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
   .brand { font-size: 16px; }
@@ -479,23 +479,23 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   justify-content: center;
 }
 .app[data-rally-mode="audio"] #view-rally .counter-card {
-  margin-top: clamp(24px, 8dvh, 72px);
-  padding: 18px 14px 14px;
+  margin-top: clamp(44px, 12dvh, 118px);
+  padding: 22px 16px 16px;
 }
 .app[data-rally-mode="audio"] #view-rally .counter-value {
-  font-size: clamp(118px, 28dvh, 184px);
-  margin: 4px 0 14px;
+  font-size: clamp(148px, 34dvh, 236px);
+  margin: 6px 0 18px;
 }
 .app[data-rally-mode="audio"] #view-rally .counter-sub {
-  padding-top: 10px;
+  padding-top: 12px;
 }
 .app[data-rally-mode="audio"] #view-rally .counter-sub span {
-  font-size: 26px;
+  font-size: 32px;
 }
 .app[data-rally-mode="audio"] #view-rally .mode-area {
   flex: 1 1 auto;
-  min-height: 54px;
-  padding-top: 10px;
+  min-height: 72px;
+  padding-top: 12px;
 }
 .app[data-rally-mode="audio"] #view-rally #panel-audio {
   justify-content: flex-start;
@@ -537,14 +537,14 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   #view-rally .counter-sub small { font-size: 8px; }
   #view-rally .video-wrap { min-height: 215px; max-height: 50dvh; }
   #view-rally .hint { display: none; }
-  .app[data-rally-mode="audio"] #view-rally .counter-card { margin-top: clamp(12px, 4dvh, 34px); padding: 12px 10px 10px; }
+  .app[data-rally-mode="audio"] #view-rally .counter-card { margin-top: clamp(20px, 7dvh, 58px); padding: 14px 10px 10px; }
   .app[data-rally-mode="audio"] #view-rally .counter-value {
-    font-size: clamp(96px, 24dvh, 148px);
-    margin: 0 0 10px;
+    font-size: clamp(118px, 30dvh, 178px);
+    margin: 2px 0 12px;
   }
   .app[data-rally-mode="audio"] #view-rally .counter-sub { padding-top: 8px; }
-  .app[data-rally-mode="audio"] #view-rally .counter-sub span { font-size: 20px; }
-  .app[data-rally-mode="audio"] #view-rally .mode-area { min-height: 44px; padding-top: 6px; }
+  .app[data-rally-mode="audio"] #view-rally .counter-sub span { font-size: 24px; }
+  .app[data-rally-mode="audio"] #view-rally .mode-area { min-height: 54px; padding-top: 8px; }
 }
 /* ===================== Rally-Meilensteine ===================== */
 .milestone-overlay {
