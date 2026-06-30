@@ -560,7 +560,7 @@
         key: "tt.helpRallySeen",
         icon: "🔁",
         title: "Rally kurz erklärt",
-        text: "Kamera starten und spielen. Bestwert ist dein laengster Ballwechsel, Letzter der zuletzt beendete, Runden die Anzahl der Ballwechsel.",
+        text: "Kamera starten, Handy ruhig auf ein Stativ stellen und die Mittellinie ausrichten. Der Hintergrund sollte ruhig sein, damit nur der Ball erkannt wird.",
       },
     };
     showHelp = (kind) => {

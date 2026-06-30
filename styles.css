@@ -203,7 +203,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .serve.on { opacity: 1; }
 .pscore {
   width: 100%; text-align: center; align-self: center;
-  font-size: clamp(64px, 21vw, 118px); font-weight: 800; line-height: 1;
+  font-size: clamp(82px, 27vw, 152px); font-weight: 800; line-height: 1;
   font-variant-numeric: tabular-nums;
   background: linear-gradient(180deg, #fff, var(--accent));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
@@ -429,7 +429,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   letter-spacing: .8px;
 }
 #view-rally .counter-value {
-  font-size: clamp(42px, 11dvh, 62px);
+  font-size: clamp(54px, 13dvh, 82px);
   margin: 0 0 6px;
 }
 #view-rally .counter-sub {
@@ -444,11 +444,12 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 }
 #view-rally .mode-area {
   flex: 1 1 auto;
+  padding-top: 8px;
 }
 #view-rally .video-wrap {
   flex: 1 1 auto;
-  min-height: 210px;
-  max-height: 48dvh;
+  min-height: 240px;
+  max-height: 54dvh;
   aspect-ratio: 4 / 3;
   border-radius: 14px;
 }
@@ -473,10 +474,69 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   .app[data-view="rally"] { padding-top: max(8px, env(safe-area-inset-top)); }
   .app[data-view="rally"] .topbar { padding-bottom: 4px; }
   .app[data-view="rally"] .tabs { margin-bottom: 6px; }
-  #view-rally .counter-value { font-size: clamp(34px, 9dvh, 52px); }
+  #view-rally .counter-value { font-size: clamp(44px, 11dvh, 66px); }
   #view-rally .counter-card { padding: 6px 9px; }
   #view-rally .counter-sub span { font-size: 16px; }
   #view-rally .counter-sub small { font-size: 8px; }
-  #view-rally .video-wrap { min-height: 190px; max-height: 46dvh; }
+  #view-rally .video-wrap { min-height: 215px; max-height: 50dvh; }
   #view-rally .hint { display: none; }
+}
+/* ===================== Rally-Meilensteine ===================== */
+.milestone-overlay {
+  position: fixed; inset: 0; z-index: 95;
+  display: grid; place-items: center;
+  pointer-events: none;
+  background: rgba(2,6,20,.12);
+  opacity: 0;
+  transition: opacity .24s ease;
+}
+.milestone-overlay[hidden] { display: none; }
+.milestone-overlay.show { opacity: 1; }
+.milestone-card {
+  position: relative; z-index: 2;
+  min-width: 210px; padding: 18px 22px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(56,189,248,.48);
+  background: rgba(19,28,49,.92);
+  box-shadow: var(--shadow), 0 0 34px rgba(56,189,248,.35);
+  text-align: center;
+  transform: scale(.82);
+  animation: milestonePop .58s cubic-bezier(.2,1.35,.3,1) forwards;
+}
+.milestone-card.finale {
+  border-color: rgba(249,115,22,.7);
+  box-shadow: var(--shadow), 0 0 46px rgba(249,115,22,.48);
+}
+.milestone-kicker {
+  color: var(--muted); font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1.4px;
+}
+.milestone-number {
+  font-size: clamp(86px, 24vw, 132px);
+  line-height: .9; font-weight: 900; margin: 8px 0;
+  color: #fff; text-shadow: 0 0 22px rgba(56,189,248,.75);
+}
+.milestone-card.finale .milestone-number {
+  color: var(--accent-2); text-shadow: 0 0 28px rgba(249,115,22,.75);
+}
+.milestone-sub { color: var(--text); font-size: 14px; font-weight: 800; }
+.milestone-overlay i {
+  position: absolute; left: 50%; top: 46%; z-index: 1;
+  width: 8px; height: 18px; border-radius: 3px;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+  animation: confettiBurst .9s ease-out var(--d) forwards;
+}
+.milestone-overlay i:nth-child(3n) { background: var(--accent-2); }
+.milestone-overlay i:nth-child(4n) { background: #fff; }
+.milestone-overlay i:nth-child(5n) { background: var(--ok); }
+@keyframes milestonePop {
+  0% { transform: scale(.72) translateY(14px); opacity: 0; }
+  70% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes confettiBurst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.6) rotate(0); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--x)), 170px) scale(1) rotate(var(--r)); }
 }

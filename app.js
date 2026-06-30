@@ -22,6 +22,7 @@ const state = {
   sensitivity: 0.75, // 0..1 (höher = empfindlicher)
   vibrate: true,
   facing: "environment", // "environment" (hinten) | "user" (vorne)
+  milestonesShown: new Set(),
 };
 
 /* -------------------------------------------------------------------- */
@@ -37,6 +38,7 @@ function registerHit() {
   if (state.vibrate && navigator.vibrate) navigator.vibrate(18);
   render();
   pulse();
+  checkMilestone();
 }
 
 function endRally() {
@@ -45,6 +47,7 @@ function endRally() {
   state.rallies += 1;
   const wasRecord = state.current === state.longest && state.current > 1;
   state.current = 0;
+  state.milestonesShown.clear();
   render();
   if (wasRecord) showToast("🏆 Neuer Rekord: " + state.last + " Schläge");
   else if (state.last > 1) showToast("Ballwechsel: " + state.last + " Schläge");
@@ -53,6 +56,7 @@ function endRally() {
 function resetAll() {
   state.current = state.longest = state.last = state.rallies = 0;
   state.lastHit = 0;
+  state.milestonesShown.clear();
   render();
   showToast("Zurückgesetzt");
 }
@@ -75,6 +79,42 @@ function render() {
   $("rallyCount").textContent = state.rallies;
 }
 
+
+function checkMilestone() {
+  if (state.current < 25 || state.current % 25 !== 0 || state.milestonesShown.has(state.current)) return;
+  state.milestonesShown.add(state.current);
+  showMilestone(state.current);
+}
+
+function showMilestone(value) {
+  const el = $("milestoneOverlay");
+  if (!el) return;
+  const finale = value >= 100;
+  el.innerHTML = `
+    <div class="milestone-card ${finale ? "finale" : ""}">
+      <div class="milestone-kicker">${finale ? "Century Rally" : "Rally-Meilenstein"}</div>
+      <div class="milestone-number">${value}</div>
+      <div class="milestone-sub">${finale ? "100 Schlaege - irre!" : "Schlaege am Stueck"}</div>
+    </div>
+  `;
+  for (let i = 0; i < 28; i++) {
+    const bit = document.createElement("i");
+    bit.style.setProperty("--x", (Math.random() * 220 - 110).toFixed(0) + "px");
+    bit.style.setProperty("--r", (Math.random() * 260 - 130).toFixed(0) + "deg");
+    bit.style.setProperty("--d", (Math.random() * 0.18).toFixed(2) + "s");
+    el.appendChild(bit);
+  }
+  el.hidden = false;
+  el.classList.remove("show", "finale");
+  void el.offsetWidth;
+  el.classList.add("show");
+  el.classList.toggle("finale", finale);
+  if (state.vibrate && navigator.vibrate) navigator.vibrate(finale ? [35, 40, 80] : [25, 30, 25]);
+  setTimeout(() => {
+    el.classList.remove("show", "finale");
+    setTimeout(() => { el.hidden = true; el.innerHTML = ""; }, 260);
+  }, finale ? 2600 : 1900);
+}
 function pulse() {
   const card = $("counterCard");
   card.classList.remove("hit");
