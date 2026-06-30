@@ -85,8 +85,6 @@ function housekeeping() {
 /* -------------------------------------------------------------------- */
 function render() {
   $("currentValue").textContent = state.current;
-  const audioCount = $("audioCount");
-  if (audioCount) audioCount.textContent = state.current;
   $("longestValue").textContent = state.longest;
   $("lastValue").textContent = state.last;
   $("rallyCount").textContent = state.rallies;
@@ -385,6 +383,8 @@ function stop() {
 function setMode(mode) {
   if (state.running) stop();
   state.mode = mode;
+  const appEl = document.querySelector(".app");
+  if (appEl) appEl.dataset.rallyMode = mode;
   ["visual", "audio", "manual"].forEach((m) => ($("panel-" + m).hidden = m !== mode));
   document.querySelectorAll("#modeSelect button").forEach((b) =>
     b.classList.toggle("active", b.dataset.mode === mode)

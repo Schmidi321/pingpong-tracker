@@ -100,15 +100,6 @@ body.splashing .app {
 .meter-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .06s linear; }
 
 .audio-viz { padding: 10px 0 18px; display: flex; flex-direction: column; gap: 14px; }
-.audio-count {
-  text-align: center;
-  font-size: clamp(96px, 24dvh, 164px);
-  line-height: .9;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-  text-shadow: 0 0 30px rgba(56,189,248,.55);
-}
 .level-bar { position: relative; height: 22px; background: var(--bg-elev); border: 1px solid var(--line);
   border-radius: 99px; overflow: hidden; }
 .level-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--ok), var(--accent-2)); }
@@ -487,6 +478,30 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 #view-rally #panel-audio {
   justify-content: center;
 }
+.app[data-rally-mode="audio"] #view-rally .counter-card {
+  padding: 14px 12px 12px;
+}
+.app[data-rally-mode="audio"] #view-rally .counter-value {
+  font-size: clamp(98px, 24dvh, 154px);
+  margin: 2px 0 12px;
+}
+.app[data-rally-mode="audio"] #view-rally .counter-sub {
+  padding-top: 10px;
+}
+.app[data-rally-mode="audio"] #view-rally .counter-sub span {
+  font-size: 22px;
+}
+.app[data-rally-mode="audio"] #view-rally .mode-area {
+  flex: 0 0 auto;
+  min-height: 54px;
+  padding-top: 4px;
+}
+.app[data-rally-mode="audio"] #view-rally #panel-audio {
+  justify-content: flex-start;
+}
+.app[data-rally-mode="audio"] #view-rally .audio-viz {
+  padding: 0 0 4px;
+}
 #view-rally .video-wrap {
   flex: 1 1 auto;
   min-height: 240px;
@@ -519,12 +534,16 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   #view-rally .counter-card { padding: 6px 9px; }
   #view-rally .counter-sub span { font-size: 16px; }
   #view-rally .counter-sub small { font-size: 8px; }
-  #view-rally #panel-audio {
-  justify-content: center;
-}
-#view-rally .video-wrap { min-height: 215px; max-height: 50dvh; }
+  #view-rally .video-wrap { min-height: 215px; max-height: 50dvh; }
   #view-rally .hint { display: none; }
-  #view-rally .audio-count { font-size: clamp(82px, 22dvh, 136px); }
+  .app[data-rally-mode="audio"] #view-rally .counter-card { padding: 10px 10px 9px; }
+  .app[data-rally-mode="audio"] #view-rally .counter-value {
+    font-size: clamp(86px, 22dvh, 136px);
+    margin: 0 0 8px;
+  }
+  .app[data-rally-mode="audio"] #view-rally .counter-sub { padding-top: 8px; }
+  .app[data-rally-mode="audio"] #view-rally .counter-sub span { font-size: 18px; }
+  .app[data-rally-mode="audio"] #view-rally .mode-area { min-height: 44px; padding-top: 3px; }
 }
 /* ===================== Rally-Meilensteine ===================== */
 .milestone-overlay {
