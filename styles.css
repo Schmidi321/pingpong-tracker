@@ -175,7 +175,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: .15s; }
 .tabs button.active { background: var(--card); color: var(--text); box-shadow: 0 2px 10px rgba(0,0,0,.3); }
 
-.view { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+.view { position: relative; flex: 1; display: flex; flex-direction: column; gap: 16px; }
 .view[hidden] { display: none; }
 
 /* ===================== Scoreboard ===================== */
@@ -297,6 +297,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 
 /* ===================== Auto-Rally (2-Spieler Ton) ===================== */
 .auto-banner {
+  position: absolute; left: 0; right: 0; top: 0; z-index: 8;
   background: linear-gradient(135deg, rgba(56,189,248,.18), var(--bg-elev));
   border: 1px solid var(--line); color: var(--text); border-radius: 14px;
   padding: 12px 16px; text-align: center; font-weight: 700; font-size: 15px;
@@ -344,15 +345,57 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ===================== Farbe-Sagen-Button ===================== */
+/* ===================== Sprach-Button ===================== */
 .btn-mic {
+  flex: 0 0 58px;
+  padding: 0;
+  min-height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(56,189,248,0.10);
   color: var(--accent);
   border: 1.5px solid rgba(56,189,248,0.35);
+  font-size: 23px;
 }
 .btn-mic.live {
   background: rgba(56,189,248,0.22);
   border-color: var(--accent);
   animation: micpulse 1.3s ease-in-out infinite;
 }
-#view-score .controls .btn { flex: 1; }
+#view-score .controls .btn:not(.btn-mic) { flex: 1; }
+#view-score .controls .btn-mic { flex: 0 0 58px; }
+
+/* ===================== Hilfe & Sprach-Popup ===================== */
+.help-backdrop {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; align-items: center; justify-content: center;
+  padding: 22px; background: rgba(2,6,20,.72); backdrop-filter: blur(5px);
+}
+.help-backdrop[hidden] { display: none; }
+.help-card {
+  width: min(100%, 360px); padding: 22px;
+  background: var(--bg-elev); border: 1px solid var(--line); border-radius: 20px;
+  box-shadow: var(--shadow); text-align: center;
+}
+.help-icon { font-size: 42px; line-height: 1; margin-bottom: 10px; }
+.help-card h2 { font-size: 22px; margin-bottom: 8px; }
+.help-card p { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 18px; }
+.voice-popup {
+  position: absolute; left: 50%; top: 50%; z-index: 7;
+  transform: translate(-50%, -50%);
+  display: flex; align-items: center; gap: 12px;
+  min-width: min(86%, 320px); padding: 13px 14px;
+  background: rgba(19, 28, 49, .94); border: 1px solid rgba(56,189,248,.45);
+  border-radius: 16px; box-shadow: var(--shadow); backdrop-filter: blur(6px);
+}
+.voice-popup[hidden] { display: none; }
+.voice-dot { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(56,189,248,.16); animation: micpulse 1.3s ease-in-out infinite; }
+.voice-popup strong, .voice-popup span { display: block; }
+.voice-popup strong { font-size: 15px; }
+.voice-popup span { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.voice-popup button {
+  margin-left: auto; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  border-radius: 10px; padding: 8px 10px; font-weight: 700;
+}

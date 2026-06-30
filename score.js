@@ -285,34 +285,47 @@
       };
       rec.onend = () => { if (this.active) { try { rec.start(); } catch (_) {} } };
       this.rec = rec; this.active = true;
-      try { rec.start(); } catch (_) {}
+      try {
+        rec.start();
+      } catch (_) {
+        this.active = false; this.rec = null; setVoiceUI(false);
+        toast("Sprache konnte nicht starten");
+        return;
+      }
       setVoiceUI(true);
-      toast("Sprache an - sag 'eins' oder 'zwei'");
     },
 
     stop(silent) {
       this.active = false;
       if (this.rec) { try { this.rec.stop(); } catch (_) {} this.rec = null; }
       setVoiceUI(false);
-      if (!silent) toast("🎤 Sprache aus");
+      hideVoicePopup();
+      if (!silent) toast("Sprache aus");
     },
 
     toggle() { this.active ? this.stop() : this.start(); },
   };
 
+  function showVoicePopup() {
+    const pop = $("voicePopup");
+    if (pop) pop.hidden = activeView !== "score" || !Voice.active;
+  }
+  function hideVoicePopup() {
+    const pop = $("voicePopup");
+    if (pop) pop.hidden = true;
+  }
   function setVoiceUI() {
-    updateMicBanner();
     const btn = $("voiceBtn");
-    if (btn) { btn.textContent = Voice.active ? "🎤 Stopp" : "🎤 Farbe"; btn.classList.toggle("live", Voice.active); }
+    if (btn) {
+      btn.textContent = "🎤";
+      btn.classList.toggle("live", Voice.active);
+      btn.setAttribute("aria-label", Voice.active ? "Sprachsteuerung stoppen" : "Sprachsteuerung starten");
+      btn.title = Voice.active ? "Sprachsteuerung stoppen" : "Sprachsteuerung starten";
+    }
+    if (Voice.active) showVoicePopup(); else hideVoicePopup();
   }
   function updateVoiceBtn() { setVoiceUI(); }
-  function updateMicBanner() {
-    const el = $("autoBanner"); if (!el) return;
-    if (activeView !== "score" || !Voice.active) { el.hidden = true; el.classList.remove("pending"); return; }
-    el.hidden = false; el.classList.remove("pending");
-    el.textContent = "Sprache aktiv - 'blau' / 'orange' sagen - tippen = Stopp";
-  }
-
+  function updateMicBanner() { hideVoicePopup(); }
   /* Querformat/Hochformat – "auto" folgt der Geräte-Ausrichtung, sonst erzwungen */
   function applyLayout() {
     const eff = S.layout === "auto"
@@ -497,6 +510,7 @@
     $("winnerNew").addEventListener("click", () => { newMatch(); toast("Neues Match"); });
     $("autoBanner").addEventListener("click", () => Voice.toggle());
     $("voiceBtn").addEventListener("click", () => Voice.toggle());
+    $("voicePopupClose").addEventListener("click", () => Voice.stop());
     updateMicBanner();
 
     document.querySelectorAll("#tabs button").forEach((b) =>
@@ -540,14 +554,25 @@
     setInterval(() => Wake.apply(), 20000);  // gegen stilles Verfallen des Locks (v.a. iOS)
     document.addEventListener("pointerdown", () => Wake.apply(), { once: true }); // erste Geste: Video darf starten
 
+    const showFirstHelp = () => {
+      try {
+        if (localStorage.getItem("tt.helpSeen") === "1") return;
+        localStorage.setItem("tt.helpSeen", "1");
+      } catch (_) {}
+      const help = $("helpBackdrop");
+      if (help) help.hidden = false;
+    };
+    $("helpOk").addEventListener("click", () => { $("helpBackdrop").hidden = true; });
+
     const splashBtn = $("splashBtn");
     if (splashBtn) {
       splashBtn.addEventListener("click", () => {
         const sp = $("splash");
-        if (sp) { sp.classList.add("fade-out"); setTimeout(() => sp.remove(), 400); }
+        if (sp) { sp.classList.add("fade-out"); setTimeout(() => { sp.remove(); showFirstHelp(); }, 400); }
       });
+    } else {
+      setTimeout(showFirstHelp, 300);
     }
-
     render();
   }
 

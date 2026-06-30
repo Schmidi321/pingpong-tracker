@@ -85,6 +85,15 @@
           </div>
         </button>
 
+        <div class="voice-popup" id="voicePopup" hidden role="status" aria-live="polite">
+          <div class="voice-dot">🎤</div>
+          <div>
+            <strong>Sprache aktiv</strong>
+            <span>Sag 'blau' oder 'orange'.</span>
+          </div>
+          <button id="voicePopupClose" type="button" aria-label="Sprachsteuerung stoppen">Stopp</button>
+        </div>
+
         <div class="winner" id="winner" hidden>
           <div class="winner-card">
             <div class="winner-emoji">🏆</div>
@@ -97,7 +106,7 @@
 
       <footer class="controls">
         <button class="btn btn-ghost" id="undoBtn">↶&nbsp;Undo</button>
-        <button class="btn btn-mic" id="voiceBtn">🎤 Farbe</button>
+        <button class="btn btn-mic" id="voiceBtn" type="button" aria-label="Sprachsteuerung starten" title="Sprachsteuerung starten">🎤</button>
         <button class="btn btn-primary" id="newMatchBtn">Neues Match</button>
       </footer>
     </main>
@@ -241,6 +250,14 @@
     </div>
 
     <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+    <div class="help-backdrop" id="helpBackdrop" hidden>
+      <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="help-icon">🏓</div>
+        <h2 id="helpTitle">Kurz starten</h2>
+        <p>Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und sag 'blau' oder 'orange'.</p>
+        <button class="btn btn-primary full" id="helpOk" type="button">OK</button>
+      </div>
+    </div>
     <div class="toast" id="toast" hidden></div>
     <canvas id="confetti" class="confetti-canvas" aria-hidden="true"></canvas>
   </div>

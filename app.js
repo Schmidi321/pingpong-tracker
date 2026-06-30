@@ -188,14 +188,37 @@ const visual = {
 
   async start() {
     const video = $("video");
-    try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: state.facing, frameRate: { ideal: 60 }, width: { ideal: 1280 } },
-        audio: false,
-      });
-    } catch (e) { return failMedia("Kamera", e); }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return failMedia("Kamera", new Error("getUserMedia fehlt"));
+
+    const attempts = [
+      { video: { facingMode: { ideal: state.facing }, frameRate: { ideal: 30 }, width: { ideal: 1280 } }, audio: false },
+      { video: { facingMode: { ideal: state.facing } }, audio: false },
+      { video: true, audio: false },
+    ];
+    let lastError = null;
+    for (const constraints of attempts) {
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+        break;
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    if (!this.stream) return failMedia("Kamera", lastError);
+
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
     video.srcObject = this.stream;
-    await video.play().catch(() => {});
+    await new Promise((resolve) => {
+      if (video.readyState >= 1) resolve();
+      else {
+        video.onloadedmetadata = resolve;
+        setTimeout(resolve, 800);
+      }
+    });
+    try { await video.play(); } catch (e) { return failMedia("Kamera", e); }
 
     this.proc = document.createElement("canvas");
     this.proc.width = this.W; this.proc.height = this.H;
@@ -278,7 +301,7 @@ async function start() {
   else if (state.mode === "visual") { if (!(await visual.start())) return; }
   state.running = true;
   const btn = $("toggleBtn");
-  btn.textContent = state.mode === "manual" ? "Läuft" : "Stopp";
+  btn.textContent = "Stopp";
   btn.classList.add("running");
   if (state.mode === "manual") showToast("Los geht's – tippen!");
 }
@@ -288,7 +311,7 @@ function stop() {
   state.running = false;
   endRally();
   const btn = $("toggleBtn");
-  btn.textContent = "Start";
+  btn.textContent = state.mode === "visual" ? "Kamera starten" : "Start";
   btn.classList.remove("running");
 }
 
@@ -304,6 +327,7 @@ function setMode(mode) {
     const list = el.dataset.for.split(" ");
     el.hidden = !list.includes(mode);
   });
+  if (!state.running) $("toggleBtn").textContent = mode === "visual" ? "Kamera starten" : "Start";
 }
 
 function setSensitivity(v) {
@@ -354,7 +378,7 @@ function init() {
   });
   $("vibrateToggle").addEventListener("change", (e) => (state.vibrate = e.target.checked));
 
-  setMode("manual");
+  setMode("visual");
   setSensitivity(0.75);
   render();
   housekeeping();
