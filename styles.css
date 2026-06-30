@@ -342,11 +342,16 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 }
 .splash-desc { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 270px; }
 .splash-company {
-  margin-top: 4px;
-  color: rgba(133,149,189,.72);
-  font-size: 11px;
+  margin-top: clamp(28px, 10dvh, 84px);
+  color: rgba(133,149,189,.78);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1.6px;
+  letter-spacing: 1.4px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .splash-btn {
@@ -577,6 +582,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 }
 .splash-info-card h2 { font-size: 22px; margin-bottom: 8px; }
 .splash-info-card p { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 18px; }
+.splash-info-card strong { color: var(--text); }
 .settings-note { color: var(--muted); font-size: 13px; line-height: 1.45; margin-top: 8px; }
 .support-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }

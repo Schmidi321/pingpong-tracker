@@ -604,7 +604,10 @@
     });
     ["helpToggle", "rallyHelpToggle"].forEach((id) => {
       const el = $(id); if (!el) return;
-      el.addEventListener("change", (e) => { S.showHelp = e.target.checked; syncGlobalToggles(); saveCfg(); });
+      el.addEventListener("change", (e) => {
+        S.showHelp = e.target.checked;
+        syncGlobalToggles(); saveCfg();
+      });
     });
     $("layoutSel").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
@@ -618,24 +621,40 @@
     setInterval(() => Wake.apply(), 20000);  // gegen stilles Verfallen des Locks (v.a. iOS)
     document.addEventListener("pointerdown", () => Wake.apply(), { once: true }); // erste Geste: Video darf starten
 
+    function rallyHelpCopy() {
+      const mode = typeof window.__rallyMode === "function" ? window.__rallyMode() : "visual";
+      if (mode === "audio") return {
+        key: "tt.helpRallyAudioSeen",
+        icon: "🔊",
+        title: "Rally per Ton",
+        text: "Ton erkennt Schlag- und Tischgeraeusche. Am besten ist es rundherum ruhig, damit keine anderen Geraeusche mitgezaehlt werden.",
+      };
+      if (mode === "manual") return {
+        key: "tt.helpRallyManualSeen",
+        icon: "👆",
+        title: "Rally per Tippen",
+        text: "Start druecken und pro Schlag auf die grosse Flaeche tippen. Nach einer Pause wird der Ballwechsel automatisch abgeschlossen.",
+      };
+      return {
+        key: "tt.helpRallyVisualSeen",
+        icon: "📷",
+        title: "Rally per Kamera",
+        text: "Kamera auf ein Stativ stellen und ruhig auf Tisch und Mittellinie ausrichten. Im Hintergrund darf sich nichts bewegen - nur der Ball soll durchs Bild fliegen.",
+      };
+    }
     const helpCopy = {
-      score: {
+      score: () => ({
         key: "tt.helpScoreSeen",
         icon: "🏓",
         title: "Kurz starten",
         text: "Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und sag 'blau' oder 'orange'.",
-      },
-      rally: {
-        key: "tt.helpRallySeen",
-        icon: "🔁",
-        title: "Rally kurz erklärt",
-        text: "Kamera starten, Handy ruhig auf ein Stativ stellen und die Mittellinie ausrichten. Der Hintergrund sollte ruhig sein, damit nur der Ball erkannt wird.",
-      },
+      }),
+      rally: rallyHelpCopy,
     };
     showHelp = (kind) => {
-      const cfg = helpCopy[kind];
-      if (!cfg) return;
-      if (!S.showHelp) return;
+      const getCfg = helpCopy[kind];
+      const cfg = typeof getCfg === "function" ? getCfg() : getCfg;
+      if (!cfg || !S.showHelp) return;
       const help = $("helpBackdrop");
       if (!help) return;
       $("helpIcon").textContent = cfg.icon;
@@ -643,6 +662,7 @@
       $("helpText").textContent = cfg.text;
       help.hidden = false;
     };
+    window.__showHelp = showHelp;
     $("helpOk").addEventListener("click", () => { $("helpBackdrop").hidden = true; });
     syncGlobalToggles();
 

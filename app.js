@@ -417,12 +417,16 @@ function init() {
   };
   const closeSheet = () => { $("settingsSheet").hidden = true; $("sheetBackdrop").hidden = true; };
   window.__openRallySettings = openSheet;   // vom ⚙-Button (score.js) aufgerufen
+  window.__rallyMode = () => state.mode;
   window.__rallyStop = stop;                 // beim Tab-Wechsel: Kamera/Mikro freigeben
   $("closeSheet").addEventListener("click", closeSheet);
   $("sheetBackdrop").addEventListener("click", closeSheet);
 
   document.querySelectorAll("#modeSelect button").forEach((b) =>
-    b.addEventListener("click", () => setMode(b.dataset.mode))
+    b.addEventListener("click", () => {
+      setMode(b.dataset.mode);
+      if (typeof window.__showHelp === "function") window.__showHelp("rally");
+    })
   );
 
   $("sensitivity").addEventListener("input", (e) => setSensitivity(e.target.value / 100));
