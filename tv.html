@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ping Pong Counter – TV</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #060c1a;
+    color: #eef2ff;
+    font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 24px;
+    overflow: hidden;
+  }
+  .counter {
+    font-size: clamp(200px, 38vw, 420px);
+    font-weight: 900; line-height: 1;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, #fff 0%, #38bdf8 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    transition: transform .1s ease;
+  }
+  .counter.hit { animation: tvPop .22s ease; }
+  @keyframes tvPop { 0%{transform:scale(1)} 40%{transform:scale(1.04)} 100%{transform:scale(1)} }
+  .label { color: #8595bd; font-size: clamp(18px, 2.4vw, 32px); text-transform: uppercase; letter-spacing: 4px; font-weight: 600; }
+  .stats { display: flex; gap: clamp(40px, 8vw, 100px); margin-top: 8px; }
+  .stat { text-align: center; }
+  .stat .val { font-size: clamp(42px, 7vw, 96px); font-weight: 800; color: #38bdf8; font-variant-numeric: tabular-nums; }
+  .stat .lbl { color: #8595bd; font-size: clamp(12px, 1.4vw, 20px); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
+  .waiting { color: #4a5a7a; font-size: clamp(14px, 1.6vw, 22px); margin-top: 24px; }
+  .brand { position: fixed; bottom: 20px; right: 28px; color: #253047; font-size: 14px; font-weight: 700; letter-spacing: 1.5px; }
+</style>
+</head>
+<body>
+<div class="counter" id="counter">–</div>
+<div class="label">Ballwechsel</div>
+<div class="stats">
+  <div class="stat"><div class="val" id="best">–</div><div class="lbl">Bestwert</div></div>
+  <div class="stat"><div class="val" id="last">–</div><div class="lbl">Letzter</div></div>
+  <div class="stat"><div class="val" id="rallies">–</div><div class="lbl">Runden</div></div>
+</div>
+<div class="waiting" id="waiting">Warte auf App-Verbindung…</div>
+<div class="brand">AppReich</div>
+<script>
+  if (!('BroadcastChannel' in window)) {
+    document.getElementById('waiting').textContent = 'BroadcastChannel nicht unterstützt';
+  } else {
+    const bc = new BroadcastChannel('pp-counter');
+    const counterEl = document.getElementById('counter');
+    bc.onmessage = (e) => {
+      const d = e.data;
+      document.getElementById('waiting').style.display = 'none';
+      const prev = counterEl.textContent;
+      counterEl.textContent = d.current ?? 0;
+      if (String(d.current) !== prev) {
+        counterEl.classList.remove('hit');
+        void counterEl.offsetWidth;
+        counterEl.classList.add('hit');
+      }
+      document.getElementById('best').textContent    = d.longest ?? 0;
+      document.getElementById('last').textContent    = d.last    ?? 0;
+      document.getElementById('rallies').textContent = d.rallies ?? 0;
+    };
+  }
+</script>
+</body>
+</html>

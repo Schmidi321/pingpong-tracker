@@ -50,6 +50,7 @@
         <span>Ping&nbsp;Pong&nbsp;Counter</span>
       </div>
       <div class="topbar-actions">
+        <button id="tvBtn" class="icon-btn" aria-label="TV-Ansicht" title="Auf TV anzeigen">📺</button>
         <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
       </div>
     </header>
@@ -146,9 +147,11 @@
               <video id="video" playsinline muted></video>
               <canvas id="overlay"></canvas>
             </div>
+            <div class="zone-grid" id="zoneGrid"></div>
             <div class="net-line"></div>
             <div class="cam-timer" id="camTimer" hidden>2:00</div>
             <button id="flipCam" class="flip-cam" type="button" aria-label="Kamera wechseln" title="Kamera vorne/hinten">🔄</button>
+            <button id="zonesBtn" class="flip-cam zones-toggle" type="button" aria-label="Erkennungszonen" title="Zonen einrichten">⊞</button>
           </div>
           <div class="meter"><div class="meter-fill" id="motionMeter"></div></div>
           <div class="zoom-row">
@@ -288,6 +291,10 @@
 
       <div class="setting-row toggles">
         <label class="switch"><input type="checkbox" id="rallySoundToggle" checked /> Soundeffekte</label>
+      </div>
+
+      <div class="setting-row toggles">
+        <label class="switch"><input type="checkbox" id="headphoneToggle" /> 🎧 Kopfhörer-Taste (BT)</label>
       </div>
 
       <div class="setting-row toggles">

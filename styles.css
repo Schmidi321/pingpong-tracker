@@ -738,3 +738,12 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   100% { transform: scale(.8); opacity: 0; }
 }
 .btn-mini.donate { color: #06121e; background: linear-gradient(135deg, #fbbf24, #f97316); border-color: rgba(249,115,22,.65); }
+
+/* ===================== Erkennungszonen ===================== */
+.zone-grid { position: absolute; inset: 0; z-index: 2; display: none;
+  grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); }
+.zone-cell { border: 1px solid rgba(56,189,248,0.18); cursor: pointer;
+  transition: background .15s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.zone-cell.off { background: rgba(244,63,94,0.30); border-color: rgba(244,63,94,0.5); }
+.zones-toggle { left: 8px; right: auto; }
+.zones-toggle.active { background: rgba(56,189,248,0.3); border: 1px solid var(--accent); color: var(--accent); }

@@ -236,6 +236,7 @@ function render() {
   $("lastValue").textContent = state.last;
   $("rallyCount").textContent = state.rallies;
   $("counterCard").dataset.digits = String(state.current).length;
+  if (window._ppTV) window._ppTV.postMessage({ current: state.current, longest: state.longest, last: state.last, rallies: state.rallies });
 }
 
 
@@ -399,6 +400,7 @@ const audio = {
 const visual = {
   stream: null, raf: 0, W: 160, H: 120,
   prev: null, lastX: 0.5, octx: null,
+  zones: Array.from({length: 3}, () => new Array(4).fill(true)),
 
   async start() {
     const video = $("video");
@@ -464,6 +466,9 @@ const visual = {
         this.octx.clearRect(0, 0, this.W, this.H);
         const ov = this.octx.getImageData(0, 0, this.W, this.H);
         for (let i = 0; i < n; i++) {
+          const col = ((i % this.W) * 4 / this.W) | 0;
+          const row = (((i / this.W) | 0) * 3 / this.H) | 0;
+          if (!this.zones[row][col]) continue;
           if (Math.abs(gray[i] - this.prev[i]) > pth) {
             count++; sumX += i % this.W;
             const o = i * 4;
@@ -500,6 +505,52 @@ const visual = {
     this.stream = this.prev = null;
   },
 };
+
+/* ==================================================================== */
+/* BLUETOOTH-KOPFHÖRER (Media Session API)                              */
+/* ==================================================================== */
+const headphone = {
+  enabled: false, _audio: null,
+
+  enable() {
+    this.enabled = true;
+    try {
+      const wav = new Uint8Array([82,73,70,70,37,0,0,0,87,65,86,69,102,109,116,32,16,0,0,0,1,0,1,0,64,31,0,0,64,31,0,0,1,0,8,0,100,97,116,97,1,0,0,0,128]);
+      this._audio = new Audio(URL.createObjectURL(new Blob([wav], {type:'audio/wav'})));
+      this._audio.loop = true; this._audio.volume = 0;
+      this._audio.play().catch(() => {});
+    } catch(e) {}
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: 'Ping Pong Counter' });
+      const hit = () => { if (state.running) registerHit('headphone'); };
+      navigator.mediaSession.setActionHandler('play', hit);
+      navigator.mediaSession.setActionHandler('pause', hit);
+      navigator.mediaSession.setActionHandler('nexttrack', hit);
+    }
+    showToast('🎧 Kopfhörer-Taste aktiv');
+  },
+
+  disable() {
+    this.enabled = false;
+    if (this._audio) { URL.revokeObjectURL(this._audio.src); this._audio.pause(); this._audio = null; }
+    if ('mediaSession' in navigator) {
+      ['play','pause','nexttrack'].forEach(a => { try { navigator.mediaSession.setActionHandler(a, null); } catch(e) {} });
+    }
+  },
+};
+
+function initZoneGrid() {
+  const grid = $('zoneGrid');
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'zone-cell';
+    cell.addEventListener('pointerdown', () => {
+      visual.zones[r][c] = !visual.zones[r][c];
+      cell.classList.toggle('off', !visual.zones[r][c]);
+    });
+    grid.appendChild(cell);
+  }
+}
 
 /* ==================================================================== */
 /* Gemeinsame Steuerung                                                 */
@@ -651,6 +702,29 @@ function init() {
   $("challengeResultClose").addEventListener("click", () => {
     $("challengeResult").hidden = true;
     updateChallengeDisplay();
+  });
+
+  // Erkennungszonen
+  initZoneGrid();
+  $('zonesBtn').addEventListener('click', () => {
+    const g = $('zoneGrid');
+    const show = g.style.display !== 'grid';
+    g.style.display = show ? 'grid' : 'none';
+    $('zonesBtn').classList.toggle('active', show);
+    if (show) showToast('Tippen zum Sperren · nochmal tippen zum Aktivieren');
+  });
+
+  // TV-Ansicht
+  $('tvBtn').addEventListener('click', () => {
+    if (!('BroadcastChannel' in window)) { showToast('Nicht unterstützt'); return; }
+    if (!window._ppTV) window._ppTV = new BroadcastChannel('pp-counter');
+    window.open('tv.html', 'ppTV', 'width=1280,height=720,noreferrer');
+    showToast('📺 TV-Fenster geöffnet');
+  });
+
+  // Kopfhörer
+  $('headphoneToggle').addEventListener('change', (e) => {
+    e.target.checked ? headphone.enable() : headphone.disable();
   });
 
   setMode("visual");
