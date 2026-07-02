@@ -747,3 +747,60 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .zone-cell.off { background: rgba(244,63,94,0.30); border-color: rgba(244,63,94,0.5); }
 .zones-toggle { left: 8px; right: auto; }
 .zones-toggle.active { background: rgba(56,189,248,0.3); border: 1px solid var(--accent); color: var(--accent); }
+
+/* ===================== SixSeven 6:7 Moment ===================== */
+.sixseven-overlay {
+  position: fixed; inset: 0; z-index: 82;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  opacity: 0; transition: opacity .3s ease;
+}
+.sixseven-overlay.show { opacity: 1; }
+.sixseven-overlay.fade { opacity: 0; }
+.sixseven-overlay[hidden] { display: none; }
+.sixseven-card {
+  text-align: center;
+  background: rgba(11,17,32,.88);
+  border: 1px solid rgba(56,189,248,.4);
+  border-radius: 26px;
+  padding: 26px 40px 20px;
+  box-shadow: 0 0 60px rgba(56,189,248,.22), 0 0 60px rgba(249,115,22,.12), 0 24px 64px rgba(0,0,0,.7);
+  backdrop-filter: blur(8px);
+  animation: sixsevenPop .48s cubic-bezier(.2,1.35,.3,1) both;
+}
+.sixseven-figures {
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+}
+.sixseven-fig {
+  font-size: 52px; line-height: 1; display: inline-block;
+}
+.sixseven-overlay.show .sixseven-fig.f1 {
+  animation: sixsevenFigL .6s cubic-bezier(.2,1.5,.3,1) .12s both;
+}
+.sixseven-overlay.show .sixseven-fig.f2 {
+  animation: sixsevenFigR .6s cubic-bezier(.2,1.5,.3,1) .22s both;
+}
+.sixseven-score {
+  font-size: clamp(56px, 17vw, 96px); font-weight: 900; letter-spacing: 5px;
+  background: linear-gradient(135deg, var(--accent) 20%, var(--accent-2) 80%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(56,189,248,.45));
+}
+.sixseven-brand {
+  margin-top: 12px; font-size: 12px; font-weight: 800; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--muted);
+}
+@keyframes sixsevenPop {
+  from { transform: scale(.68) translateY(24px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes sixsevenFigL {
+  0%   { transform: rotate(30deg) scale(.5); opacity: 0; }
+  55%  { transform: rotate(-18deg) scale(1.35); opacity: 1; }
+  100% { transform: rotate(-10deg) scale(1.15); opacity: 1; }
+}
+@keyframes sixsevenFigR {
+  0%   { transform: rotate(-30deg) scale(.5); opacity: 0; }
+  55%  { transform: rotate(18deg) scale(1.35); opacity: 1; }
+  100% { transform: rotate(10deg) scale(1.15); opacity: 1; }
+}

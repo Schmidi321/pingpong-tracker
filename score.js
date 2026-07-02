@@ -29,6 +29,7 @@
     lastBallSoundKey: "",
     matchOver: false,
     history: [],
+    sixseven: false,
   };
 
   const setsToWin = () => Math.floor(S.bestOf / 2) + 1;
@@ -101,10 +102,27 @@
           : [[440, 0, .10], [660, .13, .12], [880, .30, .18]], "triangle", finale ? .13 : .1);
         if (finale) speak("Die " + value + " ist erreicht, ihr Helden.");
       },
+      sixseven() { seq([[440, 0, .10], [554, .12, .10], [659, .24, .12], [880, .38, .20], [1047, .58, .30]], 'sine', .13); },
       enabled() { return S.sound; },
     };
   })();
   window.__ppSound = Sound;
+
+  /* -------------------------------------------------------------- */
+  let sixsevenTimer = 0;
+  function showSixSeven() {
+    const el = $('sixsevenOverlay');
+    if (!el) return;
+    clearTimeout(sixsevenTimer);
+    el.hidden = false;
+    el.classList.remove('show', 'fade'); void el.offsetWidth;
+    el.classList.add('show');
+    Sound.sixseven();
+    sixsevenTimer = setTimeout(() => {
+      el.classList.add('fade');
+      setTimeout(() => { el.hidden = true; el.classList.remove('show', 'fade'); }, 350);
+    }, 2200);
+  }
 
   /* -------------------------------------------------------------- */
   function addPoint(p) {
@@ -114,6 +132,11 @@
 
     S.points[p]++;
     const o = other(p), ppg = S.ppg;
+
+    if (S.sixseven) {
+      const a = S.points[1], b = S.points[2];
+      if ((a === 6 && b === 7) || (a === 7 && b === 6)) showSixSeven();
+    }
 
     if (S.points[p] >= ppg && S.points[p] - S.points[o] >= 2) {
       S.sets[p]++;                       // Satz gewonnen
@@ -240,7 +263,7 @@
   function saveCfg() {
     try {
       localStorage.setItem("tt.cfg", JSON.stringify({
-        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, wake: S.keepAwake, snd: S.sound, help: S.showHelp,
+        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, wake: S.keepAwake, snd: S.sound, help: S.showHelp, six: S.sixseven,
       }));
     } catch (e) {}
   }
@@ -251,7 +274,7 @@
       if (c.names) S.names = c.names;
       S.ppg = c.ppg || 11; S.bestOf = c.bestOf || 5;
       S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.keepAwake = c.wake !== false;
-      S.sound = c.snd !== false; S.showHelp = c.help !== false;
+      S.sound = c.snd !== false; S.showHelp = c.help !== false; S.sixseven = c.six === true;
     } catch (e) {}
   }
   function pickSegment(container, value, attr) {
@@ -266,7 +289,8 @@
     pickSegment($("firstServeSel"), S.matchFirstServer, "fs");
     pickSegment($("layoutSel"), S.layout, "lay");
     $("scoreVibrate").checked = S.vibrate;
-        $("wakeToggle").checked = S.keepAwake;
+    $("wakeToggle").checked = S.keepAwake;
+    const sixTog = $("sixsevenToggle"); if (sixTog) sixTog.checked = S.sixseven;
     syncGlobalToggles();
   }
   function syncGlobalToggles() {
@@ -621,6 +645,8 @@
         syncGlobalToggles(); saveCfg();
       });
     });
+    const sixTogEl = $("sixsevenToggle");
+    if (sixTogEl) sixTogEl.addEventListener("change", (e) => { S.sixseven = e.target.checked; saveCfg(); });
     $("layoutSel").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       S.layout = b.dataset.lay; pickSegment($("layoutSel"), S.layout, "lay"); saveCfg(); applyLayout();
