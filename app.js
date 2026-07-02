@@ -98,10 +98,21 @@ function playBeep(freq, dur, vol) {
 
 function speakNumber(n) {
   if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(String(n));
-  utt.lang = "de-DE"; utt.rate = 1.0;
-  window.speechSynthesis.speak(utt);
+  // Während Sprachausgabe den Audio-Detektor stumm schalten
+  if (state.mode === "audio") {
+    audio.muted = true;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(String(n));
+    utt.lang = "de-DE"; utt.rate = 1.0;
+    utt.onend = utt.onerror = () => { setTimeout(() => { audio.muted = false; }, 600); };
+    window.speechSynthesis.speak(utt);
+    setTimeout(() => { audio.muted = false; }, 4000); // Fallback
+  } else {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(String(n));
+    utt.lang = "de-DE"; utt.rate = 1.0;
+    window.speechSynthesis.speak(utt);
+  }
 }
 
 function runCountdown(callback) {
@@ -244,7 +255,8 @@ function checkMilestone() {
   if (state.current < 25 || state.current % 25 !== 0 || state.milestonesShown.has(state.current)) return;
   state.milestonesShown.add(state.current);
   showMilestone(state.current);
-  if (state.current % 50 === 0 && state.current >= 50 && state.current <= 500) speakNumber(state.current);
+  if (state.current % 100 === 0 && state.current >= 100 && state.current <= 1000) speakNumber(state.current);
+  else playBeep(state.current % 50 === 0 ? 880 : 659, 0.14, 0.3);
 }
 
 function milestoneCopy(value) {
@@ -315,7 +327,7 @@ function showToast(msg) {
 /* ==================================================================== */
 const audio = {
   ctx: null, analyser: null, stream: null, buf: null,
-  armed: true, noiseFloor: 0.02, raf: 0,
+  armed: true, noiseFloor: 0.02, raf: 0, muted: false,
 
   async start() {
     try {
@@ -354,7 +366,7 @@ const audio = {
     $("thresholdMarker").style.left = Math.min(100, threshold * GAIN) + "%";
 
     // Hysterese gegen Mehrfachzählung eines Schlags
-    if (this.armed && peak >= threshold) {
+    if (!this.muted && this.armed && peak >= threshold) {
       this.armed = false;
       registerHit("audio");
     } else if (!this.armed && peak < threshold * 0.55) {
