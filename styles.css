@@ -693,4 +693,27 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .cr-stats small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
 .cr-record   { color: #fbbf24; font-weight: 700; margin-bottom: 12px; }
 .cr-best-ever { color: var(--muted); font-size: 13px; margin-bottom: 14px; min-height: 16px; }
+
+/* Live-Pace */
+.challenge-pace { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 6px; min-height: 18px; text-align: center; }
+.challenge-pace.on-record { color: #fbbf24; }
+
+/* 3-2-1 Countdown-Overlay */
+.countdown-overlay {
+  position: fixed; inset: 0; z-index: 350;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(11,17,32,.78); backdrop-filter: blur(8px);
+}
+.countdown-overlay[hidden] { display: none; }
+.countdown-number {
+  font-size: clamp(110px, 38vw, 190px); font-weight: 900; line-height: 1;
+  color: var(--accent); text-shadow: 0 0 50px rgba(56,189,248,.55);
+}
+.countdown-number.pop { animation: countPop .95s ease-out forwards; }
+@keyframes countPop {
+  0%   { transform: scale(1.4); opacity: 0; }
+  12%  { opacity: 1; }
+  75%  { transform: scale(1); opacity: 1; }
+  100% { transform: scale(.8); opacity: 0; }
+}
 .btn-mini.donate { color: #06121e; background: linear-gradient(135deg, #fbbf24, #f97316); border-color: rgba(249,115,22,.65); }

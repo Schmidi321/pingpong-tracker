@@ -29,6 +29,7 @@ const state = {
   challengeTimeLeft: 0,
   challengeTimer: null,
   challengeTotalHits: 0,
+  countdownTimer: null,
 };
 
 /* -------------------------------------------------------------------- */
@@ -81,6 +82,71 @@ function resetAll() {
 /* ==================================================================== */
 /* CHALLENGE-MODUS                                                       */
 /* ==================================================================== */
+function playBeep(freq, dur, vol) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq || 880;
+    gain.gain.setValueAtTime(vol || 0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (dur || 0.12));
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + (dur || 0.12) + 0.05);
+  } catch (e) {}
+}
+
+function speakNumber(n) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(String(n));
+  utt.lang = "de-DE"; utt.rate = 1.0;
+  window.speechSynthesis.speak(utt);
+}
+
+function runCountdown(callback) {
+  const overlay = $("countdownOverlay");
+  const numEl   = $("countdownNumber");
+  let n = 3;
+
+  function showN(val) {
+    numEl.textContent = val;
+    numEl.classList.remove("pop");
+    void numEl.offsetWidth;
+    numEl.classList.add("pop");
+  }
+
+  overlay.hidden = false;
+  showN(3);
+  playBeep(523, 0.12, 0.4);
+
+  state.countdownTimer = setInterval(() => {
+    n--;
+    if (n > 0) {
+      showN(n);
+      playBeep(523, 0.12, 0.4);
+    } else {
+      showN("GO!");
+      playBeep(880, 0.22, 0.5);
+      clearInterval(state.countdownTimer);
+      state.countdownTimer = null;
+      setTimeout(() => { overlay.hidden = true; callback(); }, 650);
+    }
+  }, 1000);
+}
+
+function updatePaceDisplay() {
+  const el = $("challengePace");
+  if (!el) return;
+  const elapsed = state.challengeDurationSec - state.challengeTimeLeft;
+  if (elapsed < 3 || state.challengeTotalHits === 0) { el.textContent = ""; return; }
+  const projected = Math.round((state.challengeTotalHits / elapsed) * state.challengeDurationSec);
+  const best = challengeBest();
+  const onRecord = best > 0 && projected > best;
+  el.textContent = (onRecord ? "🏆 Kurs: " : "⬆ Kurs: ") + projected + " Schläge";
+  el.className = "challenge-pace" + (onRecord ? " on-record" : "");
+}
+
 function challengeFmt(sec) {
   return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
 }
@@ -120,6 +186,9 @@ function updateChallengeDisplay() {
 function tickChallenge() {
   state.challengeTimeLeft = Math.max(0, state.challengeTimeLeft - 1);
   updateChallengeDisplay();
+  updatePaceDisplay();
+  if (state.challengeTimeLeft > 0 && state.challengeTimeLeft <= 5)
+    playBeep(state.challengeTimeLeft === 1 ? 1047 : 659, 0.14, 0.4);
   if (state.challengeTimeLeft > 0) return;
   clearInterval(state.challengeTimer);
   state.challengeTimer = null;
@@ -166,6 +235,7 @@ function checkMilestone() {
   if (state.current < 25 || state.current % 25 !== 0 || state.milestonesShown.has(state.current)) return;
   state.milestonesShown.add(state.current);
   showMilestone(state.current);
+  if (state.current % 50 === 0 && state.current >= 50 && state.current <= 500) speakNumber(state.current);
 }
 
 function milestoneCopy(value) {
@@ -447,15 +517,21 @@ async function start() {
     state.challengeTotalHits = 0;
     state.challengeTimeLeft = state.challengeDurationSec;
     render();
-    state.challengeTimer = setInterval(tickChallenge, 1000);
-    updateChallengeDisplay();
-    showToast("⏱ Challenge gestartet!");
+    runCountdown(() => {
+      state.challengeTimer = setInterval(tickChallenge, 1000);
+      updateChallengeDisplay();
+      showToast("⏱ Challenge läuft!");
+    });
   } else {
     if (state.mode === "manual") showToast("Los geht's – tippen!");
   }
 }
 
 function stop() {
+  if (state.countdownTimer) {
+    clearInterval(state.countdownTimer); state.countdownTimer = null;
+    $("countdownOverlay").hidden = true;
+  }
   if (state.challengeTimer) { clearInterval(state.challengeTimer); state.challengeTimer = null; }
   audio.stop(); visual.stop();
   state.running = false;

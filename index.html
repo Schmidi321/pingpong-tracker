@@ -135,6 +135,7 @@
         <div class="challenge-countdown" id="challengeCountdown" hidden>
           <div class="challenge-time-display" id="challengeTimeDisplay">2:00</div>
           <div class="challenge-pbar"><div class="challenge-pfill" id="challengePfill" style="width:100%"></div></div>
+          <div class="challenge-pace" id="challengePace"></div>
         </div>
       </div>
 
@@ -310,6 +311,11 @@
     <div class="milestone-overlay" id="milestoneOverlay" hidden aria-live="polite"></div>
     <div class="toast" id="toast" hidden></div>
     <canvas id="confetti" class="confetti-canvas" aria-hidden="true"></canvas>
+
+    <!-- ==================== 3-2-1 COUNTDOWN ==================== -->
+    <div class="countdown-overlay" id="countdownOverlay" hidden>
+      <div class="countdown-number" id="countdownNumber">3</div>
+    </div>
 
     <!-- ==================== CHALLENGE ERGEBNIS ==================== -->
     <div class="challenge-result-overlay" id="challengeResult" hidden>
