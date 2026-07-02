@@ -748,6 +748,20 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .zones-toggle { left: 8px; right: auto; }
 .zones-toggle.active { background: rgba(56,189,248,0.3); border: 1px solid var(--accent); color: var(--accent); }
 
+/* ===================== Audio-Challenge Kompakt-Timer ===================== */
+.audio-challenge-bar {
+  display: flex; align-items: center; gap: 10px; padding: 2px 0 6px;
+}
+.audio-challenge-bar[hidden] { display: none; }
+.acb-time {
+  font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--accent); letter-spacing: -.5px; white-space: nowrap; min-width: 52px;
+}
+.acb-time.warn { color: var(--danger); }
+.acb-pfill-wrap { flex: 1; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.acb-pfill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s linear; }
+.acb-pfill.warn { background: var(--danger); }
+
 /* ===================== SixSeven 6:7 Moment ===================== */
 .sixseven-overlay {
   position: fixed; inset: 0; z-index: 82;

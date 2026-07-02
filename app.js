@@ -98,21 +98,14 @@ function playBeep(freq, dur, vol) {
 
 function speakNumber(n) {
   if (!window.speechSynthesis) return;
-  // Während Sprachausgabe den Audio-Detektor stumm schalten
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(String(n));
+  utt.lang = "de-DE"; utt.rate = 1.0;
   if (state.mode === "audio") {
-    audio.muted = true;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(String(n));
-    utt.lang = "de-DE"; utt.rate = 1.0;
-    utt.onend = utt.onerror = () => { setTimeout(() => { audio.muted = false; }, 600); };
-    window.speechSynthesis.speak(utt);
-    setTimeout(() => { audio.muted = false; }, 4000); // Fallback
-  } else {
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(String(n));
-    utt.lang = "de-DE"; utt.rate = 1.0;
-    window.speechSynthesis.speak(utt);
+    muteAudio(4000); // Fallback-Mute; wird bei onend verkürzt
+    utt.onend = utt.onerror = () => { audioMuteEnd = performance.now() + 600; };
   }
+  window.speechSynthesis.speak(utt);
 }
 
 function runCountdown(callback) {
@@ -175,29 +168,43 @@ function updateChallengeDisplay() {
   const pick      = $("challengePick");
   const countdown = $("challengeCountdown");
   const camTimer  = $("camTimer");
+  const audioBar  = $("audioChallengeBar");
   const running   = state.challengeTimer !== null;
 
   if (!state.challengeEnabled || !running) {
-    pick.hidden     = !state.challengeEnabled;
+    pick.hidden      = !state.challengeEnabled;
     countdown.hidden = true;
-    if (camTimer) camTimer.hidden = true;
+    if (camTimer)  camTimer.hidden = true;
+    if (audioBar)  audioBar.hidden = true;
     return;
   }
-  const fmt = challengeFmt(state.challengeTimeLeft);
-  $("challengeTimeDisplay").textContent = fmt;
-  const pct = (state.challengeTimeLeft / state.challengeDurationSec) * 100;
-  const fill = $("challengePfill");
-  fill.style.width = pct + "%";
+  const fmt  = challengeFmt(state.challengeTimeLeft);
+  const pct  = (state.challengeTimeLeft / state.challengeDurationSec) * 100;
   const warn = state.challengeTimeLeft <= 30;
-  fill.classList.toggle("warn", warn);
+
+  $("challengeTimeDisplay").textContent = fmt;
+  $("challengePfill").style.width = pct + "%";
+  $("challengePfill").classList.toggle("warn", warn);
   $("challengeTimeDisplay").classList.toggle("warn", warn);
 
   if (state.mode === "visual") {
     pick.hidden = true; countdown.hidden = true;
+    if (audioBar) audioBar.hidden = true;
     if (camTimer) { camTimer.textContent = fmt; camTimer.hidden = false; }
+  } else if (state.mode === "audio") {
+    pick.hidden = true; countdown.hidden = true;
+    if (camTimer) camTimer.hidden = true;
+    if (audioBar) {
+      audioBar.hidden = false;
+      $("audioChallengeTime").textContent = fmt;
+      $("audioChallengeTime").classList.toggle("warn", warn);
+      $("audioChallengeBarFill").style.width = pct + "%";
+      $("audioChallengeBarFill").classList.toggle("warn", warn);
+    }
   } else {
     pick.hidden = true; countdown.hidden = false;
     if (camTimer) camTimer.hidden = true;
+    if (audioBar) audioBar.hidden = true;
   }
 }
 
@@ -254,9 +261,13 @@ function render() {
 function checkMilestone() {
   if (state.current < 25 || state.current % 25 !== 0 || state.milestonesShown.has(state.current)) return;
   state.milestonesShown.add(state.current);
+  muteAudio(700); // Beep/Milestone-Sound nicht als Hit werten
   showMilestone(state.current);
-  if (state.current % 100 === 0 && state.current >= 100 && state.current <= 1000) speakNumber(state.current);
-  else playBeep(state.current % 50 === 0 ? 880 : 659, 0.14, 0.3);
+  if (state.current % 50 === 0 && state.current >= 50 && state.current <= 500) {
+    speakNumber(state.current); // verlängert Mute via muteAudio(4000) + onend
+  } else {
+    playBeep(659, 0.14, 0.3); // kurzer Ton bei 25, 75
+  }
 }
 
 function milestoneCopy(value) {
@@ -325,6 +336,12 @@ function showToast(msg) {
 /* ==================================================================== */
 /* AUDIO-DETEKTOR                                                       */
 /* ==================================================================== */
+let audioMuteEnd = 0;
+function muteAudio(ms) {
+  audioMuteEnd = Math.max(audioMuteEnd, performance.now() + ms);
+  audio.muted = true;
+}
+
 const audio = {
   ctx: null, analyser: null, stream: null, buf: null,
   armed: true, noiseFloor: 0.02, raf: 0, muted: false,
@@ -347,6 +364,7 @@ const audio = {
   },
 
   loop() {
+    if (this.muted && performance.now() > audioMuteEnd) this.muted = false;
     this.analyser.getByteTimeDomainData(this.buf);
     // Spitzen-Abweichung vom Nullpunkt (128) → Impuls-Stärke 0..1
     let peak = 0;

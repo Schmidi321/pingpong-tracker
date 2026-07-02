@@ -162,13 +162,17 @@
           <p class="hint" id="visualHint">Kamera seitlich aufstellen, ganze Tischlänge im Bild.</p>
         </div>
 
-        <div class="mode-panel" id="panel-audio" hidden>
-          <div class="audio-viz">
-            <div class="level-bar"><div class="level-fill" id="audioMeter"></div>
-              <div class="threshold-marker" id="thresholdMarker"></div>
+        <div class=”mode-panel” id=”panel-audio” hidden>
+          <div class=”audio-challenge-bar” id=”audioChallengeBar” hidden>
+            <span class=”acb-time” id=”audioChallengeTime”>2:00</span>
+            <div class=”acb-pfill-wrap”><div class=”acb-pfill” id=”audioChallengeBarFill” style=”width:100%”></div></div>
+          </div>
+          <div class=”audio-viz”>
+            <div class=”level-bar”><div class=”level-fill” id=”audioMeter”></div>
+              <div class=”threshold-marker” id=”thresholdMarker”></div>
             </div>
           </div>
-          <p class="hint" id="audioHint">Erkennt das „Tock“ von Ball auf Tisch &amp; Schläger.</p>
+          <p class=”hint” id=”audioHint”>Erkennt das „Tock” von Ball auf Tisch &amp; Schläger.</p>
         </div>
 
         <div class="mode-panel" id="panel-manual" hidden>
