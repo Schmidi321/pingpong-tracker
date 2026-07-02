@@ -235,6 +235,7 @@ function render() {
   $("longestValue").textContent = state.longest;
   $("lastValue").textContent = state.last;
   $("rallyCount").textContent = state.rallies;
+  $("counterCard").dataset.digits = String(state.current).length;
 }
 
 

@@ -487,6 +487,12 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   font-size: clamp(148px, 34dvh, 236px);
   margin: 6px 0 18px;
 }
+.app[data-rally-mode="audio"] #view-rally #counterCard[data-digits="3"] .counter-value {
+  font-size: clamp(90px, 22dvh, 160px);
+}
+.app[data-rally-mode="audio"] #view-rally #counterCard[data-digits="4"] .counter-value {
+  font-size: clamp(66px, 16dvh, 118px);
+}
 .app[data-rally-mode="audio"] #view-rally .counter-sub {
   padding-top: 12px;
 }
@@ -542,6 +548,12 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   .app[data-rally-mode="audio"] #view-rally .counter-value {
     font-size: clamp(118px, 30dvh, 178px);
     margin: 2px 0 12px;
+  }
+  .app[data-rally-mode="audio"] #view-rally #counterCard[data-digits="3"] .counter-value {
+    font-size: clamp(78px, 18dvh, 120px);
+  }
+  .app[data-rally-mode="audio"] #view-rally #counterCard[data-digits="4"] .counter-value {
+    font-size: clamp(58px, 13dvh, 90px);
   }
   .app[data-rally-mode="audio"] #view-rally .counter-sub { padding-top: 8px; }
   .app[data-rally-mode="audio"] #view-rally .counter-sub span { font-size: 24px; }
