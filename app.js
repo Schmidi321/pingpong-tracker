@@ -19,11 +19,16 @@ const state = {
   rallies: 0,
   lastHit: 0,
   rallyTimeoutMs: 2500,
-  sensitivity: 0.75, // 0..1 (höher = empfindlicher)
+  sensitivity: 0.75,
   vibrate: true,
-  facing: "environment", // "environment" (hinten) | "user" (vorne)
+  facing: "environment",
   audioLeadInIgnored: false,
   milestonesShown: new Set(),
+  challengeEnabled: true,
+  challengeDurationSec: 120,
+  challengeTimeLeft: 0,
+  challengeTimer: null,
+  challengeTotalHits: 0,
 };
 
 /* -------------------------------------------------------------------- */
@@ -42,6 +47,7 @@ function registerHit(source) {
     return;
   }
   state.current += 1;
+  if (state.challengeTimer) state.challengeTotalHits++;
   state.lastHit = now;
   if (state.current > state.longest) state.longest = state.current;
   if (state.vibrate && navigator.vibrate) navigator.vibrate(18);
@@ -70,6 +76,71 @@ function resetAll() {
   state.milestonesShown.clear();
   render();
   showToast("Zurückgesetzt");
+}
+
+/* ==================================================================== */
+/* CHALLENGE-MODUS                                                       */
+/* ==================================================================== */
+function challengeFmt(sec) {
+  return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+}
+function challengeBestKey() { return "pp_chal_" + state.challengeDurationSec; }
+function challengeBest()    { return parseInt(localStorage.getItem(challengeBestKey()) || "0"); }
+
+function updateChallengeDisplay() {
+  const pick      = $("challengePick");
+  const countdown = $("challengeCountdown");
+  const camTimer  = $("camTimer");
+  const running   = state.challengeTimer !== null;
+
+  if (!state.challengeEnabled || !running) {
+    pick.hidden     = !state.challengeEnabled;
+    countdown.hidden = true;
+    if (camTimer) camTimer.hidden = true;
+    return;
+  }
+  const fmt = challengeFmt(state.challengeTimeLeft);
+  $("challengeTimeDisplay").textContent = fmt;
+  const pct = (state.challengeTimeLeft / state.challengeDurationSec) * 100;
+  const fill = $("challengePfill");
+  fill.style.width = pct + "%";
+  const warn = state.challengeTimeLeft <= 30;
+  fill.classList.toggle("warn", warn);
+  $("challengeTimeDisplay").classList.toggle("warn", warn);
+
+  if (state.mode === "visual") {
+    pick.hidden = true; countdown.hidden = true;
+    if (camTimer) { camTimer.textContent = fmt; camTimer.hidden = false; }
+  } else {
+    pick.hidden = true; countdown.hidden = false;
+    if (camTimer) camTimer.hidden = true;
+  }
+}
+
+function tickChallenge() {
+  state.challengeTimeLeft = Math.max(0, state.challengeTimeLeft - 1);
+  updateChallengeDisplay();
+  if (state.challengeTimeLeft > 0) return;
+  clearInterval(state.challengeTimer);
+  state.challengeTimer = null;
+  endRally();
+  const total = state.challengeTotalHits;
+  const best  = challengeBest();
+  const isRec = total > 0 && total > best;
+  if (isRec) localStorage.setItem(challengeBestKey(), total);
+  stop();
+  showChallengeResult(total, state.longest, state.rallies, isRec, best);
+  updateChallengeDisplay();
+}
+
+function showChallengeResult(total, bestRally, rallies, isRec, prevBest) {
+  $("crTotal").textContent   = total;
+  $("crBest").textContent    = bestRally;
+  $("crRallies").textContent = rallies;
+  $("crRecord").hidden       = !isRec;
+  $("crEmoji").textContent   = isRec ? "🏆" : "⏱";
+  $("crBestEver").textContent = (!isRec && prevBest > 0) ? "Rekord: " + prevBest + " Schläge" : "";
+  $("challengeResult").hidden = false;
 }
 
 /* Aufräum-Schleife: schließt Ballwechsel nach Pause automatisch ab. */
@@ -368,16 +439,31 @@ async function start() {
   const btn = $("toggleBtn");
   btn.textContent = "Stopp";
   btn.classList.add("running");
-  if (state.mode === "manual") showToast("Los geht's – tippen!");
+  if (state.challengeEnabled) {
+    state.current = state.longest = state.last = state.rallies = 0;
+    state.audioLeadInIgnored = false;
+    state.lastHit = 0;
+    state.milestonesShown.clear();
+    state.challengeTotalHits = 0;
+    state.challengeTimeLeft = state.challengeDurationSec;
+    render();
+    state.challengeTimer = setInterval(tickChallenge, 1000);
+    updateChallengeDisplay();
+    showToast("⏱ Challenge gestartet!");
+  } else {
+    if (state.mode === "manual") showToast("Los geht's – tippen!");
+  }
 }
 
 function stop() {
+  if (state.challengeTimer) { clearInterval(state.challengeTimer); state.challengeTimer = null; }
   audio.stop(); visual.stop();
   state.running = false;
   endRally();
   const btn = $("toggleBtn");
   btn.textContent = state.mode === "visual" ? "Kamera starten" : "Start";
   btn.classList.remove("running");
+  updateChallengeDisplay();
 }
 
 function setMode(mode) {
@@ -453,6 +539,27 @@ function init() {
     $("timeoutValue").textContent = (state.rallyTimeoutMs / 1000).toFixed(1).replace(".", ",") + " s";
   });
   $("vibrateToggle").addEventListener("change", (e) => (state.vibrate = e.target.checked));
+
+  // Challenge-Zeit wählen
+  document.querySelectorAll("#challengeTimeSel button").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (state.challengeTimer) return;
+      state.challengeDurationSec = parseInt(b.dataset.min) * 60;
+      state.challengeEnabled = true;
+      document.querySelectorAll("#challengeTimeSel button").forEach((x) =>
+        x.classList.toggle("active", x === b)
+      );
+      updateChallengeDisplay();
+    })
+  );
+  $("challengeResultOk").addEventListener("click", () => {
+    $("challengeResult").hidden = true;
+    start();
+  });
+  $("challengeResultClose").addEventListener("click", () => {
+    $("challengeResult").hidden = true;
+    updateChallengeDisplay();
+  });
 
   setMode("visual");
   setSensitivity(0.75);

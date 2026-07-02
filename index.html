@@ -121,12 +121,30 @@
         </div>
       </div>
 
+      <!-- ==================== CHALLENGE ==================== -->
+      <div class="challenge-section" id="challengeSection">
+        <div class="challenge-pick" id="challengePick">
+          <span class="challenge-pick-label">⏱ Challenge</span>
+          <div class="segmented four" id="challengeTimeSel">
+            <button data-min="1">1 Min</button>
+            <button data-min="2" class="active">2 Min</button>
+            <button data-min="3">3 Min</button>
+            <button data-min="5">5 Min</button>
+          </div>
+        </div>
+        <div class="challenge-countdown" id="challengeCountdown" hidden>
+          <div class="challenge-time-display" id="challengeTimeDisplay">2:00</div>
+          <div class="challenge-pbar"><div class="challenge-pfill" id="challengePfill" style="width:100%"></div></div>
+        </div>
+      </div>
+
       <section class="mode-area">
         <div class="mode-panel" id="panel-visual" hidden>
           <div class="video-wrap">
             <video id="video" playsinline muted></video>
             <canvas id="overlay"></canvas>
             <div class="net-line"></div>
+            <div class="cam-timer" id="camTimer" hidden>2:00</div>
             <button id="flipCam" class="flip-cam" type="button" aria-label="Kamera wechseln" title="Kamera vorne/hinten">🔄</button>
           </div>
           <div class="meter"><div class="meter-fill" id="motionMeter"></div></div>
@@ -292,6 +310,23 @@
     <div class="milestone-overlay" id="milestoneOverlay" hidden aria-live="polite"></div>
     <div class="toast" id="toast" hidden></div>
     <canvas id="confetti" class="confetti-canvas" aria-hidden="true"></canvas>
+
+    <!-- ==================== CHALLENGE ERGEBNIS ==================== -->
+    <div class="challenge-result-overlay" id="challengeResult" hidden>
+      <div class="challenge-result-card">
+        <div class="cr-emoji" id="crEmoji">⏱</div>
+        <div class="cr-title">Zeit abgelaufen!</div>
+        <div class="cr-stats">
+          <div><span id="crTotal">0</span><small>Schläge</small></div>
+          <div><span id="crBest">0</span><small>Bester Rally</small></div>
+          <div><span id="crRallies">0</span><small>Runden</small></div>
+        </div>
+        <div class="cr-record" id="crRecord" hidden>🏆 Neuer Rekord!</div>
+        <div class="cr-best-ever" id="crBestEver"></div>
+        <button class="btn btn-primary full" id="challengeResultOk">Nochmal</button>
+        <button class="btn btn-ghost full" id="challengeResultClose">Schließen</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
