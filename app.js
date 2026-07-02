@@ -139,12 +139,19 @@ function updatePaceDisplay() {
   const el = $("challengePace");
   if (!el) return;
   const elapsed = state.challengeDurationSec - state.challengeTimeLeft;
-  if (elapsed < 3 || state.challengeTotalHits === 0) { el.textContent = ""; return; }
+  if (elapsed < 3 || state.challengeTotalHits === 0) { el.textContent = ""; el.className = "challenge-pace"; return; }
   const projected = Math.round((state.challengeTotalHits / elapsed) * state.challengeDurationSec);
   const best = challengeBest();
-  const onRecord = best > 0 && projected > best;
-  el.textContent = (onRecord ? "🏆 Kurs: " : "⬆ Kurs: ") + projected + " Schläge";
-  el.className = "challenge-pace" + (onRecord ? " on-record" : "");
+  let cls, label;
+  if (best > 0 && projected > best) {
+    cls = "challenge-pace on-record";    label = "🏆 Kurs: " + projected + " Schläge";
+  } else if (best > 0 && projected < best) {
+    cls = "challenge-pace below-record"; label = "⬆ Kurs: " + projected + " Schläge";
+  } else {
+    cls = "challenge-pace pace-good";    label = "⬆ Kurs: " + projected + " Schläge";
+  }
+  el.textContent = label;
+  el.className = cls;
 }
 
 function challengeFmt(sec) {
@@ -486,6 +493,9 @@ const visual = {
     if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
     const v = $("video"); v.srcObject = null;
     if (this.octx) this.octx.clearRect(0, 0, this.W, this.H);
+    const vi = $("videoInner"); if (vi) vi.style.transform = "";
+    const zs = $("zoomSlider"); if (zs) zs.value = 1;
+    const zv = $("zoomValue"); if (zv) zv.textContent = "1×";
     this.stream = this.prev = null;
   },
 };
@@ -609,6 +619,11 @@ function init() {
   $("sensitivity").addEventListener("input", (e) => setSensitivity(e.target.value / 100));
   $("calibrateBtn").addEventListener("click", () => audio.calibrate());
   $("flipCam").addEventListener("click", flipCamera);
+  $("zoomSlider").addEventListener("input", (e) => {
+    const z = parseFloat(e.target.value);
+    $("zoomValue").textContent = z.toFixed(1).replace(".", ",") + "×";
+    const vi = $("videoInner"); if (vi) vi.style.transform = z > 1 ? `scale(${z})` : "";
+  });
 
   $("rallyTimeout").addEventListener("input", (e) => {
     state.rallyTimeoutMs = +e.target.value;
