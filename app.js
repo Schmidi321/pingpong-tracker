@@ -237,6 +237,211 @@ function showChallengeResult(total, bestRally, rallies, isRec, prevBest) {
   $("challengeResult").hidden = false;
 }
 
+/* ==================================================================== */
+/* TEAM-DUELL (Unterbereich von Tippen: 2 Teams im Wechsel, X Runden)   */
+/* ==================================================================== */
+const duel = {
+  phase: "idle", // idle | setup | turn | result
+  rounds: 3,
+  turnSec: 60,
+  nameA: "Team Blau",
+  nameB: "Team Orange",
+  scoresA: [],
+  scoresB: [],
+  round: 1,
+  team: "A",
+  hits: 0,
+  timeLeft: 0,
+  timer: null,
+  turnRunning: false,
+  confetti: { parts: [], raf: 0, until: 0 },
+};
+
+function duelSetUIIdle() {
+  duel.phase = "idle";
+  $("duelSetup").hidden = true;
+  $("duelActive").hidden = true;
+  $("duelOpenBtn").hidden = false;
+  $("tapPad").hidden = false;
+  $("counterCard").hidden = false;
+  $("challengeSection").hidden = false;
+  $("rallyControls").hidden = false;
+}
+
+function duelOpenSetup() {
+  if (state.running) stop();
+  duel.phase = "setup";
+  $("duelOpenBtn").hidden = true;
+  $("tapPad").hidden = true;
+  $("counterCard").hidden = true;
+  $("challengeSection").hidden = true;
+  $("rallyControls").hidden = true;
+  $("duelActive").hidden = true;
+  $("duelSetup").hidden = false;
+}
+
+function duelCancelSetup() {
+  duelSetUIIdle();
+}
+
+function duelHardReset() {
+  if (state.countdownTimer) { clearInterval(state.countdownTimer); state.countdownTimer = null; $("countdownOverlay").hidden = true; }
+  if (duel.timer) { clearInterval(duel.timer); duel.timer = null; }
+  duel.turnRunning = false;
+  $("duelResult").hidden = true;
+  duelSetUIIdle();
+}
+
+function duelStart() {
+  duel.nameA = $("duelNameA").value.trim() || "Team Blau";
+  duel.nameB = $("duelNameB").value.trim() || "Team Orange";
+  duel.scoresA = [];
+  duel.scoresB = [];
+  duel.round = 1;
+  duel.phase = "turn";
+  $("duelSetup").hidden = true;
+  duelBeginTurn("A");
+}
+
+function duelBeginTurn(team) {
+  duel.team = team;
+  duel.hits = 0;
+  duel.turnRunning = false;
+  const name = team === "A" ? duel.nameA : duel.nameB;
+  $("duelRoundLabel").textContent = "Runde " + duel.round + "/" + duel.rounds;
+  $("duelTurnTeam").textContent = name;
+  $("duelTurnTeam").className = "duel-turn-team team-" + team.toLowerCase();
+  $("duelTurnBanner").className = "duel-turn-banner team-" + team.toLowerCase();
+  $("duelLiveCount").textContent = "0";
+  $("duelActive").hidden = false;
+  $("tapPad").hidden = true;
+  showToast(name + " ist dran!");
+  runCountdown(() => {
+    duel.turnRunning = true;
+    duel.timeLeft = duel.turnSec;
+    $("tapPad").hidden = false;
+    duelUpdateTimer();
+    duel.timer = setInterval(duelTick, 1000);
+  });
+}
+
+function duelUpdateTimer() {
+  const fmt = challengeFmt(duel.timeLeft);
+  const pct = (duel.timeLeft / duel.turnSec) * 100;
+  const warn = duel.timeLeft <= 5;
+  $("duelTurnTimer").textContent = fmt;
+  $("duelTurnTimer").classList.toggle("warn", warn);
+  $("duelTurnPfill").style.width = pct + "%";
+  $("duelTurnPfill").classList.toggle("warn", warn);
+}
+
+function duelTick() {
+  duel.timeLeft = Math.max(0, duel.timeLeft - 1);
+  duelUpdateTimer();
+  if (duel.timeLeft > 0 && duel.timeLeft <= 3) playBeep(duel.timeLeft === 1 ? 1047 : 659, 0.14, 0.4);
+  if (duel.timeLeft > 0) return;
+  clearInterval(duel.timer);
+  duel.timer = null;
+  duel.turnRunning = false;
+  playBeep(392, 0.28, 0.45);
+  if (duel.team === "A") duel.scoresA[duel.round - 1] = duel.hits;
+  else duel.scoresB[duel.round - 1] = duel.hits;
+  $("tapPad").hidden = true;
+  if (duel.team === "A") {
+    setTimeout(() => duelBeginTurn("B"), 900);
+  } else if (duel.round < duel.rounds) {
+    duel.round++;
+    setTimeout(() => duelBeginTurn("A"), 900);
+  } else {
+    setTimeout(duelFinish, 900);
+  }
+}
+
+function duelTap() {
+  duel.hits++;
+  $("duelLiveCount").textContent = duel.hits;
+  if (state.vibrate && navigator.vibrate) navigator.vibrate(18);
+  const pad = $("tapPad");
+  pad.classList.remove("hit");
+  void pad.offsetWidth;
+  pad.classList.add("hit");
+}
+
+function duelConfettiBurst(team) {
+  const cv = $("confetti");
+  if (!cv) return;
+  const ctx = cv.getContext("2d");
+  const W = (cv.width = window.innerWidth);
+  const H = (cv.height = window.innerHeight);
+  const cols = team === "A" ? ["#38bdf8", "#7dd3fc", "#ffffff", "#f97316"] : ["#f97316", "#fdba74", "#ffffff", "#38bdf8"];
+  const c = duel.confetti;
+  c.parts = [];
+  for (let i = 0; i < 150; i++) {
+    c.parts.push({
+      x: W * (0.2 + Math.random() * 0.6), y: H * 0.28 + (Math.random() - 0.5) * 80,
+      vx: (Math.random() - 0.5) * 10, vy: Math.random() * -10 - 3,
+      g: 0.16 + Math.random() * 0.12, s: 5 + Math.random() * 8,
+      rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.35,
+      col: cols[i % cols.length],
+    });
+  }
+  c.until = performance.now() + 2800;
+  cancelAnimationFrame(c.raf);
+  (function loop() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const p of c.parts) {
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.col; ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.55);
+      ctx.restore();
+    }
+    if (performance.now() < c.until) c.raf = requestAnimationFrame(loop);
+    else ctx.clearRect(0, 0, cv.width, cv.height);
+  })();
+}
+
+function duelFinish() {
+  duel.phase = "result";
+  $("duelActive").hidden = true;
+  const totalA = duel.scoresA.reduce((a, b) => a + b, 0);
+  const totalB = duel.scoresB.reduce((a, b) => a + b, 0);
+  const max = Math.max(totalA, totalB, 1);
+  $("duelCompareNameA").textContent = duel.nameA;
+  $("duelCompareNameB").textContent = duel.nameB;
+  $("duelCompareTotalA").textContent = totalA;
+  $("duelCompareTotalB").textContent = totalB;
+  $("duelCompareBarA").style.height = Math.max(6, (totalA / max) * 100) + "%";
+  $("duelCompareBarB").style.height = Math.max(6, (totalB / max) * 100) + "%";
+
+  let winnerText, emoji, winnerTeam;
+  if (totalA === totalB) { winnerText = "Unentschieden!"; emoji = "🤝"; winnerTeam = null; }
+  else if (totalA > totalB) { winnerText = duel.nameA + " gewinnt!"; emoji = "🏆"; winnerTeam = "A"; }
+  else { winnerText = duel.nameB + " gewinnt!"; emoji = "🏆"; winnerTeam = "B"; }
+  $("duelWinnerName").textContent = winnerText;
+  $("duelWinnerEmoji").textContent = emoji;
+  $("duelWinnerBanner").className = "duel-winner-banner" + (winnerTeam ? " team-" + winnerTeam.toLowerCase() : " tie");
+
+  let rows = "";
+  for (let i = 0; i < duel.rounds; i++) {
+    rows += `<div class="duel-round-row"><span>Runde ${i + 1}</span><b class="team-a">${duel.scoresA[i] ?? 0}</b><i>:</i><b class="team-b">${duel.scoresB[i] ?? 0}</b></div>`;
+  }
+  $("duelRoundBreakdown").innerHTML = rows;
+
+  $("duelResult").hidden = false;
+  if (state.vibrate && navigator.vibrate) navigator.vibrate([30, 40, 30, 40, 80]);
+  duelConfettiBurst(winnerTeam || "A");
+}
+
+function duelClose() {
+  $("duelResult").hidden = true;
+  duelSetUIIdle();
+}
+
+function duelAgain() {
+  $("duelResult").hidden = true;
+  duelOpenSetup();
+}
+
 /* Aufräum-Schleife: schließt Ballwechsel nach Pause automatisch ab. */
 function housekeeping() {
   if (state.current > 0 && performance.now() - state.lastHit > state.rallyTimeoutMs) {
@@ -625,6 +830,7 @@ function stop() {
     $("countdownOverlay").hidden = true;
   }
   if (state.challengeTimer) { clearInterval(state.challengeTimer); state.challengeTimer = null; }
+  if (duel.phase !== "idle") duelHardReset();
   audio.stop(); visual.stop();
   state.running = false;
   endRally();
@@ -636,6 +842,7 @@ function stop() {
 
 function setMode(mode) {
   if (state.running) stop();
+  if (duel.phase !== "idle" && mode !== "manual") duelHardReset();
   state.mode = mode;
   const appEl = document.querySelector(".app");
   if (appEl) appEl.dataset.rallyMode = mode;
@@ -677,7 +884,29 @@ async function flipCamera() {
 function init() {
   $("toggleBtn").addEventListener("click", () => (state.running ? stop() : start()));
   $("resetBtn").addEventListener("click", resetAll);
-  $("tapPad").addEventListener("click", () => { if (state.running) registerHit(); else showToast("Erst Start drücken"); });
+  $("tapPad").addEventListener("click", () => {
+    if (duel.turnRunning) { duelTap(); return; }
+    if (state.running) registerHit(); else showToast("Erst Start drücken");
+  });
+
+  // Team-Duell
+  $("duelOpenBtn").addEventListener("click", duelOpenSetup);
+  $("duelCancelBtn").addEventListener("click", duelCancelSetup);
+  $("duelStartBtn").addEventListener("click", duelStart);
+  $("duelResultAgain").addEventListener("click", duelAgain);
+  $("duelResultClose").addEventListener("click", duelClose);
+  document.querySelectorAll("#duelRoundsSel button").forEach((b) =>
+    b.addEventListener("click", () => {
+      duel.rounds = parseInt(b.dataset.r);
+      document.querySelectorAll("#duelRoundsSel button").forEach((x) => x.classList.toggle("active", x === b));
+    })
+  );
+  document.querySelectorAll("#duelTimeSel button").forEach((b) =>
+    b.addEventListener("click", () => {
+      duel.turnSec = parseInt(b.dataset.sec);
+      document.querySelectorAll("#duelTimeSel button").forEach((x) => x.classList.toggle("active", x === b));
+    })
+  );
 
   // Einstellungs-Sheet
   const openSheet = () => {

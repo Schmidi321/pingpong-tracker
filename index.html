@@ -162,28 +162,79 @@
           <p class="hint" id="visualHint">Kamera seitlich aufstellen, ganze Tischlänge im Bild.</p>
         </div>
 
-        <div class=”mode-panel” id=”panel-audio” hidden>
-          <div class=”audio-challenge-bar” id=”audioChallengeBar” hidden>
-            <span class=”acb-time” id=”audioChallengeTime”>2:00</span>
-            <div class=”acb-pfill-wrap”><div class=”acb-pfill” id=”audioChallengeBarFill” style=”width:100%”></div></div>
+        <div class="mode-panel" id="panel-audio" hidden>
+          <div class="audio-challenge-bar" id="audioChallengeBar" hidden>
+            <span class="acb-time" id="audioChallengeTime">2:00</span>
+            <div class="acb-pfill-wrap"><div class="acb-pfill" id="audioChallengeBarFill" style="width:100%"></div></div>
           </div>
-          <div class=”audio-viz”>
-            <div class=”level-bar”><div class=”level-fill” id=”audioMeter”></div>
-              <div class=”threshold-marker” id=”thresholdMarker”></div>
+          <div class="audio-viz">
+            <div class="level-bar"><div class="level-fill" id="audioMeter"></div>
+              <div class="threshold-marker" id="thresholdMarker"></div>
             </div>
           </div>
-          <p class=”hint” id=”audioHint”>Erkennt das „Tock” von Ball auf Tisch &amp; Schläger.</p>
+          <p class="hint" id="audioHint">Erkennt das „Tock" von Ball auf Tisch &amp; Schläger.</p>
         </div>
 
         <div class="mode-panel" id="panel-manual" hidden>
+          <div class="duel-launch-row">
+            <button class="btn-mini duel-launch-btn" id="duelOpenBtn" type="button">⚔ Team-Duell starten</button>
+          </div>
+
           <button class="tap-pad" id="tapPad">
             <span class="tap-plus">+1</span>
             <span class="tap-text">tippen pro Schlag</span>
           </button>
+
+          <!-- ==================== TEAM-DUELL: EINRICHTEN ==================== -->
+          <div class="duel-setup" id="duelSetup" hidden>
+            <div class="duel-setup-head">⚔ Team-Duell einrichten</div>
+            <div class="duel-team-inputs">
+              <div class="duel-team-field team-a">
+                <label class="field-label">Team Blau</label>
+                <input class="text-input" id="duelNameA" type="text" maxlength="14" placeholder="Team Blau" />
+              </div>
+              <div class="duel-vs">vs</div>
+              <div class="duel-team-field team-b">
+                <label class="field-label">Team Orange</label>
+                <input class="text-input" id="duelNameB" type="text" maxlength="14" placeholder="Team Orange" />
+              </div>
+            </div>
+            <div class="setting-row">
+              <label class="field-label">Runden</label>
+              <div class="segmented three" id="duelRoundsSel">
+                <button data-r="1">1</button>
+                <button data-r="3" class="active">3</button>
+                <button data-r="5">5</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label class="field-label">Zeit pro Team</label>
+              <div class="segmented four" id="duelTimeSel">
+                <button data-sec="30">30s</button>
+                <button data-sec="60" class="active">1 Min</button>
+                <button data-sec="90">1:30</button>
+                <button data-sec="120">2 Min</button>
+              </div>
+            </div>
+            <button class="btn btn-primary full" id="duelStartBtn">Duell starten</button>
+            <button class="btn btn-ghost full" id="duelCancelBtn">Abbrechen</button>
+          </div>
+
+          <!-- ==================== TEAM-DUELL: LAUFENDE RUNDE ==================== -->
+          <div class="duel-active" id="duelActive" hidden>
+            <div class="duel-round-label" id="duelRoundLabel">Runde 1/3</div>
+            <div class="duel-turn-banner" id="duelTurnBanner">
+              <span class="duel-turn-team" id="duelTurnTeam">Team Blau</span>
+              <span class="duel-turn-sub">ist dran</span>
+            </div>
+            <div class="duel-live-count" id="duelLiveCount">0</div>
+            <div class="duel-turn-timer" id="duelTurnTimer">1:00</div>
+            <div class="duel-turn-pbar"><div class="duel-turn-pfill" id="duelTurnPfill" style="width:100%"></div></div>
+          </div>
         </div>
       </section>
 
-      <footer class="controls">
+      <footer class="controls" id="rallyControls">
         <button class="btn btn-ghost" id="resetBtn">Zurücksetzen</button>
         <button class="btn btn-primary" id="toggleBtn">Start</button>
       </footer>
@@ -363,6 +414,32 @@
         <div class="cr-best-ever" id="crBestEver"></div>
         <button class="btn btn-primary full" id="challengeResultOk">Nochmal</button>
         <button class="btn btn-ghost full" id="challengeResultClose">Schließen</button>
+      </div>
+    </div>
+
+    <!-- ==================== TEAM-DUELL ERGEBNIS ==================== -->
+    <div class="duel-result-overlay" id="duelResult" hidden>
+      <div class="duel-result-card">
+        <div class="duel-result-title">⚔ Duell-Ergebnis</div>
+        <div class="duel-winner-banner" id="duelWinnerBanner">
+          <span class="duel-winner-emoji" id="duelWinnerEmoji">🏆</span>
+          <span class="duel-winner-name" id="duelWinnerName">Team Blau gewinnt!</span>
+        </div>
+        <div class="duel-compare">
+          <div class="duel-compare-team team-a">
+            <div class="duel-compare-total" id="duelCompareTotalA">0</div>
+            <div class="duel-compare-bar-wrap"><div class="duel-compare-bar bar-a" id="duelCompareBarA"></div></div>
+            <div class="duel-compare-name" id="duelCompareNameA">Team Blau</div>
+          </div>
+          <div class="duel-compare-team team-b">
+            <div class="duel-compare-total" id="duelCompareTotalB">0</div>
+            <div class="duel-compare-bar-wrap"><div class="duel-compare-bar bar-b" id="duelCompareBarB"></div></div>
+            <div class="duel-compare-name" id="duelCompareNameB">Team Orange</div>
+          </div>
+        </div>
+        <div class="duel-round-breakdown" id="duelRoundBreakdown"></div>
+        <button class="btn btn-primary full" id="duelResultAgain">Neues Duell</button>
+        <button class="btn btn-ghost full" id="duelResultClose">Schließen</button>
       </div>
     </div>
   </div>
