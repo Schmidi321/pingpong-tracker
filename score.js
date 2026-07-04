@@ -684,7 +684,7 @@
       score: () => ({
         key: "tt.helpScoreSeen",
         icon: "🏓",
-        title: "Kurz starten",
+        title: "Hinweis",
         text: "Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und sag 'blau' oder 'orange'.",
       }),
       rally: rallyHelpCopy,

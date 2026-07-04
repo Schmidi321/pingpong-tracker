@@ -858,6 +858,7 @@ function setMode(mode) {
   const sensitivityLabel = $("sensitivityLabel");
   if (sensitivityLabel) sensitivityLabel.textContent = mode === "audio" ? "Ton-Empfindlichkeit" : "Kamera-Empfindlichkeit";
   if (!state.running) $("toggleBtn").textContent = mode === "visual" ? "Kamera starten" : "Start";
+  try { localStorage.setItem("pp_rally_mode", mode); } catch (e) {}
 }
 
 function setSensitivity(v) {
@@ -986,7 +987,12 @@ function init() {
     e.target.checked ? headphone.enable() : headphone.disable();
   });
 
-  setMode("visual");
+  let savedMode = "visual";
+  try {
+    const stored = localStorage.getItem("pp_rally_mode");
+    if (stored === "visual" || stored === "audio" || stored === "manual") savedMode = stored;
+  } catch (e) {}
+  setMode(savedMode);
   setSensitivity(0.75);
   render();
   housekeeping();
