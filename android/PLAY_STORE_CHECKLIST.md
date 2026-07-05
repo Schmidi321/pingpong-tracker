@@ -107,8 +107,10 @@ Hinweis fuer Data Safety Form:
 
 ## Noch offen (bevor Play Store Upload)
 
-- [ ] Screenshots aus aktueller UI erstellen (mind. 2, empfohlen 4-8; Play Store: 320-3840px je Seite,
-      Seitenverhaeltnis zwischen 16:9 und 9:16). Vorlage/Mockup liegt vor, muss noch final gerendert werden.
+- [x] Screenshots: screen-score.png (Punkte) und screen-duel-result.png (Duell-Ergebnis) fertig, 824x1784px.
+- [ ] Screenshots: Rally-Kamera-Ansicht und laufendes Duell (Live-Zaehler) fehlen noch
+      (screen-rally.png ist noch der alte Platzhalter). Play Store: mind. 2, empfohlen 4-8, 320-3840px je Seite,
+      Seitenverhaeltnis zwischen 16:9 und 9:16.
 - [ ] Feature-Grafik 1024x500 fuer die Store-Listing-Seite erstellen.
 - [ ] Datenschutzerklaerung (`PRIVACY_POLICY_DRAFT.md`) veroeffentlichen und URL in Play Console eintragen.
 - [ ] assetlinks.json um Play-App-Signing-Fingerprint ergaenzen (siehe TWA-Abschnitt oben) - behebt die
