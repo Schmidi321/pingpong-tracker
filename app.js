@@ -891,6 +891,10 @@ function init() {
   });
 
   // Team-Duell
+  $("duelQuickBtn").addEventListener("click", () => {
+    if (state.mode !== "manual") setMode("manual");
+    duelOpenSetup();
+  });
   $("duelOpenBtn").addEventListener("click", duelOpenSetup);
   $("duelCancelBtn").addEventListener("click", duelCancelSetup);
   $("duelStartBtn").addEventListener("click", duelStart);

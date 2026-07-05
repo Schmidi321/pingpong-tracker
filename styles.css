@@ -431,6 +431,9 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 .help-card p { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 18px; }
 
 /* ===================== Rally kompakt ===================== */
+#duelQuickBtn { display: none; }
+.app[data-view="rally"] #duelQuickBtn { display: inline-flex; align-items: center; justify-content: center; }
+
 .app[data-view="rally"] .topbar {
   padding: 0 2px 6px;
 }
