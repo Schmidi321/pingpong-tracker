@@ -839,18 +839,35 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .duel-team-field.team-b .text-input { border-color: rgba(249,115,22,.4); }
 .duel-vs { color: var(--muted); font-weight: 800; font-size: 13px; padding-bottom: 13px; }
 
-.duel-active { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px 0 14px; }
+.duel-active { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 0 16px; }
 .duel-active[hidden] { display: none; }
 .duel-round-label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-.duel-turn-banner { display: flex; align-items: baseline; gap: 8px; padding: 5px 16px; border-radius: 12px; }
-.duel-turn-banner.team-a { background: rgba(56,189,248,.12); }
-.duel-turn-banner.team-b { background: rgba(249,115,22,.14); }
-.duel-turn-team { font-size: 22px; font-weight: 900; }
+.duel-turn-banner {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 22px; border-radius: 99px; margin-top: 2px;
+  border: 1.5px solid transparent;
+}
+.duel-turn-banner.team-a { background: rgba(56,189,248,.14); border-color: rgba(56,189,248,.4); }
+.duel-turn-banner.team-b { background: rgba(249,115,22,.16); border-color: rgba(249,115,22,.45); }
+.duel-turn-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; animation: micpulse 1.3s ease-in-out infinite; }
+.duel-turn-banner.team-a .duel-turn-dot { background: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.25); }
+.duel-turn-banner.team-b .duel-turn-dot { background: var(--accent-2); box-shadow: 0 0 0 3px rgba(249,115,22,.25); }
+.duel-turn-team { font-size: 28px; font-weight: 900; letter-spacing: -.2px; }
 .duel-turn-team.team-a { color: var(--accent); }
 .duel-turn-team.team-b { color: var(--accent-2); }
-.duel-turn-sub { color: var(--muted); font-size: 13px; }
-.duel-live-count { font-size: clamp(48px, 14vw, 68px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
-.duel-turn-timer { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.duel-turn-sub { color: var(--muted); font-size: 14px; font-weight: 600; }
+.duel-live-label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.6px; margin-top: 6px; }
+.duel-live-count {
+  font-size: clamp(100px, 34vw, 172px); font-weight: 900; line-height: 1; margin: 2px 0;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #fff, var(--accent));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.duel-live-count.team-b {
+  background: linear-gradient(180deg, #fff, var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.duel-turn-timer { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); margin-top: 4px; }
 .duel-turn-timer.warn { color: var(--danger); }
 .duel-turn-pbar { width: 80%; max-width: 220px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
 .duel-turn-pfill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s linear, background .3s; }

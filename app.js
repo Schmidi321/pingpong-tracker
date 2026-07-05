@@ -313,6 +313,7 @@ function duelBeginTurn(team) {
   $("duelTurnTeam").textContent = name;
   $("duelTurnTeam").className = "duel-turn-team team-" + team.toLowerCase();
   $("duelTurnBanner").className = "duel-turn-banner team-" + team.toLowerCase();
+  $("duelLiveCount").className = "duel-live-count team-" + team.toLowerCase();
   $("duelLiveCount").textContent = "0";
   $("duelActive").hidden = false;
   if (state.mode === "manual") $("tapPad").hidden = true;
