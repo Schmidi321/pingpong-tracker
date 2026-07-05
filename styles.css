@@ -97,11 +97,11 @@ body.splashing .app {
   backdrop-filter: blur(4px); }
 .flip-cam:active { transform: scale(.92); }
 
-.meter { height: 8px; background: var(--bg-elev); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+.meter { height: 5px; background: var(--bg-elev); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
 .meter-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .06s linear; }
 
-.audio-viz { padding: 10px 0 18px; display: flex; flex-direction: column; gap: 14px; }
-.level-bar { position: relative; height: 22px; background: var(--bg-elev); border: 1px solid var(--line);
+.audio-viz { padding: 6px 0 10px; display: flex; flex-direction: column; gap: 14px; }
+.level-bar { position: relative; height: 12px; background: var(--bg-elev); border: 1px solid var(--line);
   border-radius: 99px; overflow: hidden; }
 .level-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--ok), var(--accent-2)); }
 .threshold-marker { position: absolute; top: -5px; bottom: -5px; width: 3px; background: var(--danger);
@@ -529,7 +529,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
   border-radius: 14px;
 }
 #view-rally .meter {
-  height: 6px;
+  height: 4px;
 }
 #view-rally .hint {
   font-size: 11px;
@@ -689,8 +689,8 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .cam-timer {
   position: absolute; top: 8px; left: 8px; z-index: 10;
   background: rgba(11,17,32,.82); border: 1px solid var(--accent);
-  color: var(--accent); border-radius: 8px; padding: 3px 9px;
-  font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--accent); border-radius: 10px; padding: 5px 13px;
+  font-size: 23px; font-weight: 800; font-variant-numeric: tabular-nums;
   backdrop-filter: blur(4px);
 }
 
@@ -765,8 +765,8 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 }
 .audio-challenge-bar[hidden] { display: none; }
 .acb-time {
-  font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums;
-  color: var(--accent); letter-spacing: -.5px; white-space: nowrap; min-width: 52px;
+  font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--accent); letter-spacing: -.5px; white-space: nowrap; min-width: 76px;
 }
 .acb-time.warn { color: var(--danger); }
 .acb-pfill-wrap { flex: 1; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
