@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Icon Export</title>
+<style>
+  body { background: #060b18; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: -apple-system, sans-serif; color: #eef2ff; gap: 24px; }
+  canvas { border-radius: 22%; box-shadow: 0 20px 60px rgba(0,0,0,0.7); }
+  button { background: #38bdf8; color: #060b18; border: none; padding: 14px 36px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
+  button:hover { background: #7dd3fc; }
+  p { color: #8595bd; font-size: 14px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="512" height="512"></canvas>
+<button onclick="download()">512×512 PNG herunterladen</button>
+<p>Für Play Store: App-Icon hochladen</p>
+<script>
+const svg = `<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+<defs>
+<radialGradient id="g0" cx="42%" cy="28%" r="72%"><stop offset="0%" stop-color="#1a2d52"/><stop offset="50%" stop-color="#0b1625"/><stop offset="100%" stop-color="#04080f"/></radialGradient>
+<radialGradient id="g1" cx="35%" cy="25%" r="65%"><stop offset="0%" stop-color="#213668"/><stop offset="55%" stop-color="#111e40"/><stop offset="100%" stop-color="#08102a"/></radialGradient>
+<linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f0faff"/><stop offset="45%" stop-color="#7dd3fc"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient>
+<radialGradient id="g3" cx="33%" cy="27%" r="60%"><stop offset="0%" stop-color="#fff7ed"/><stop offset="28%" stop-color="#fed7aa"/><stop offset="68%" stop-color="#f97316"/><stop offset="100%" stop-color="#9a3412"/></radialGradient>
+<radialGradient id="g4" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(249,115,22,0.28)"/><stop offset="100%" stop-color="rgba(249,115,22,0)"/></radialGradient>
+<radialGradient id="g5" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(56,189,248,0.12)"/><stop offset="100%" stop-color="rgba(56,189,248,0)"/></radialGradient>
+<clipPath id="pc"><circle cx="252" cy="264" r="150"/></clipPath>
+<filter id="fs"><feGaussianBlur stdDeviation="4"/></filter>
+<filter id="fb"><feGaussianBlur stdDeviation="20"/></filter>
+<filter id="fp"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="512" height="512" fill="url(#g0)"/>
+<ellipse cx="195" cy="200" rx="180" ry="150" fill="url(#g5)"/>
+<ellipse cx="385" cy="138" rx="130" ry="110" fill="url(#g4)"/>
+<g transform="rotate(-9,252,264)">
+  <circle cx="256" cy="268" r="153" fill="rgba(0,0,0,0.55)" filter="url(#fs)"/>
+  <rect x="224" y="406" width="56" height="96" rx="22" fill="rgba(0,0,0,0.55)" filter="url(#fs)"/>
+  <rect x="220" y="402" width="56" height="96" rx="22" fill="#070d1a" stroke="#14203a" stroke-width="2"/>
+  <rect x="226" y="414" width="14" height="68" rx="7" fill="rgba(255,255,255,0.05)"/>
+  <line x1="244" y1="416" x2="244" y2="482" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5 5" stroke-opacity="0.22"/>
+  <line x1="254" y1="416" x2="254" y2="482" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5 5" stroke-opacity="0.22"/>
+  <line x1="264" y1="416" x2="264" y2="482" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5 5" stroke-opacity="0.22"/>
+  <circle cx="252" cy="264" r="150" fill="url(#g1)"/>
+  <ellipse cx="216" cy="182" rx="96" ry="52" fill="rgba(255,255,255,0.045)" transform="rotate(-5,216,182)"/>
+  <g clip-path="url(#pc)" opacity="0.058">
+    <line x1="102" y1="148" x2="402" y2="148" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="172" x2="402" y2="172" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="196" x2="402" y2="196" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="220" x2="402" y2="220" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="244" x2="402" y2="244" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="268" x2="402" y2="268" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="292" x2="402" y2="292" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="316" x2="402" y2="316" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="340" x2="402" y2="340" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="364" x2="402" y2="364" stroke="#38bdf8" stroke-width="4.5"/>
+    <line x1="102" y1="388" x2="402" y2="388" stroke="#38bdf8" stroke-width="4.5"/>
+  </g>
+  <circle cx="252" cy="264" r="150" fill="none" stroke="#38bdf8" stroke-width="8" filter="url(#fp)" opacity="0.9"/>
+  <circle cx="252" cy="264" r="141" fill="none" stroke="rgba(56,189,248,0.16)" stroke-width="2.5"/>
+  <text x="252" y="286" text-anchor="middle" dominant-baseline="middle" font-family="-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="138" letter-spacing="-5" fill="url(#g2)">67</text>
+  <text x="252" y="350" text-anchor="middle" font-family="-apple-system,'Helvetica Neue',Arial,sans-serif" font-weight="600" font-size="21" letter-spacing="8" fill="rgba(56,189,248,0.52)">COUNTER</text>
+</g>
+<circle cx="382" cy="134" r="82" fill="rgba(249,115,22,0.22)" filter="url(#fb)"/>
+<circle cx="382" cy="134" r="54" fill="url(#g3)"/>
+<ellipse cx="366" cy="117" rx="17" ry="11" fill="rgba(255,255,255,0.62)" transform="rotate(-18,366,117)"/>
+<path d="M354 115 Q382 136 410 115" fill="none" stroke="rgba(154,52,18,0.55)" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="313" y1="102" x2="255" y2="80" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
+<line x1="311" y1="134" x2="248" y2="134" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" opacity="0.58"/>
+<line x1="313" y1="166" x2="255" y2="186" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" opacity="0.32"/>
+<circle cx="316" cy="106" r="3.5" fill="#7dd3fc" opacity="0.7"/>
+<circle cx="312" cy="130" r="2.5" fill="#38bdf8" opacity="0.45"/>
+<circle cx="316" cy="160" r="2" fill="#f97316" opacity="0.55"/>
+<circle cx="88" cy="115" r="2.2" fill="rgba(56,189,248,0.38)"/>
+<circle cx="448" cy="428" r="2.5" fill="rgba(56,189,248,0.22)"/>
+</svg>`;
+
+const img = new Image();
+const blob = new Blob([svg], {type: 'image/svg+xml'});
+const url = URL.createObjectURL(blob);
+img.onload = () => {
+  const ctx = document.getElementById('c').getContext('2d');
+  ctx.drawImage(img, 0, 0, 512, 512);
+  URL.revokeObjectURL(url);
+};
+img.src = url;
+
+function download() {
+  const a = document.createElement('a');
+  a.download = 'pingpong-counter-icon-512.png';
+  a.href = document.getElementById('c').toDataURL('image/png');
+  a.click();
+}
+</script>
+</body>
+</html>

@@ -335,6 +335,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none;
 }
 .splash-logo svg {
   width: 140px; height: 140px;
+  border-radius: 22%;
   filter: drop-shadow(0 10px 32px rgba(56,189,248,0.45));
 }
 .splash-title {
