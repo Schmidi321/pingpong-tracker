@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Datenschutzerklärung – Ping Pong Counter</title>
+<style>
+  :root {
+    --bg: #0b1120; --bg-elev: #131c31; --card: #16213c; --line: #243150;
+    --text: #eef2ff; --muted: #8595bd; --accent: #38bdf8; --accent-2: #f97316;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1b2a4a 0%, transparent 60%),
+      var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; margin-bottom: 8px; }
+  .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent-2);
+    box-shadow: 0 0 0 4px rgba(249,115,22,.18), 0 0 18px var(--accent-2); }
+  h1 { font-size: 28px; margin: 18px 0 6px; }
+  .updated { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
+  h2 { font-size: 19px; color: var(--accent); margin: 32px 0 10px; }
+  p, li { color: var(--text); font-size: 15px; }
+  ul { padding-left: 20px; }
+  a { color: var(--accent); }
+  .card { background: linear-gradient(160deg, var(--card), var(--bg-elev)); border: 1px solid var(--line);
+    border-radius: 18px; padding: 20px 24px; margin-top: 10px; }
+  .back { display: inline-block; margin-top: 40px; color: var(--muted); text-decoration: none; font-size: 14px; }
+  .back:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span><span>Ping Pong Counter</span></div>
+    <h1>Datenschutzerklärung</h1>
+    <p class="updated">Stand: Juli 2026</p>
+
+    <div class="card">
+      <h2>Verantwortlicher</h2>
+      <p>Michael Schmidt / AppReich<br />Kontakt: <a href="mailto:m_schmitti@gmx.de">m_schmitti@gmx.de</a></p>
+
+      <h2>Welche Daten verarbeitet die App?</h2>
+      <p>Ping Pong Counter verarbeitet nur Eingaben und Sensordaten, die für die Funktionen der App notwendig sind:</p>
+      <ul>
+        <li>Spielernamen und Einstellungen werden lokal auf dem Gerät gespeichert.</li>
+        <li>Die Kamera kann für die Ballwechsel-Erkennung (Rally- und Team-Duell-Modus) genutzt werden.</li>
+        <li>Das Mikrofon kann für Sprachsteuerung sowie Ballwechsel-Erkennung per Ton genutzt werden.</li>
+      </ul>
+
+      <h2>Kamera und Mikrofon</h2>
+      <p>Kamera- und Mikrofondaten werden ausschließlich lokal im Browser bzw. in der App-Ansicht verarbeitet,
+      um Bewegung, Geräusche oder Sprache zu erkennen. Es findet keine Übertragung von Kamera- oder
+      Mikrofondaten an AppReich oder Dritte statt. Die Verarbeitung endet, sobald die App geschlossen oder
+      der jeweilige Modus beendet wird.</p>
+
+      <h2>Lokale Speicherung</h2>
+      <p>Die App speichert Einstellungen ausschließlich lokal im Browser-Speicher des Geräts (LocalStorage),
+      zum Beispiel Spielernamen, Anzeigeoptionen, Sound- und Hinweis-Einstellungen sowie den zuletzt
+      genutzten Erkennungsmodus. Diese Daten verlassen das Gerät nicht.</p>
+
+      <h2>Konten und Anmeldung</h2>
+      <p>Die App erfordert keine Registrierung oder Anmeldung und sammelt keine Kontodaten.</p>
+
+      <h2>Externe Links</h2>
+      <p>Die App enthält Links zu einer Support-E-Mail-Adresse und zu PayPal.Me für freiwillige
+      Unterstützung. Beim Öffnen externer Links gelten die Datenschutzbedingungen des jeweiligen Anbieters.</p>
+
+      <h2>Weitergabe von Daten</h2>
+      <p>Es findet keine Weitergabe von Nutzungs-, Kamera- oder Mikrofondaten an Dritte statt.</p>
+
+      <h2>Kontakt</h2>
+      <p>Bei Fragen zum Datenschutz: <a href="mailto:m_schmitti@gmx.de">m_schmitti@gmx.de</a></p>
+    </div>
+
+    <a class="back" href="./">← Zurück zur App</a>
+  </div>
+</body>
+</html>
