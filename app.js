@@ -36,7 +36,10 @@ const state = {
 /* Zähl-Kern                                                            */
 /* -------------------------------------------------------------------- */
 function registerHit(source) {
-  if (duel.turnRunning) { duelTap(); return; }
+  if (duel.phase === "turn") {
+    if (duel.turnRunning) duelTap();
+    return;
+  }
   const now = performance.now();
   // Bei zu langer Pause zuerst den alten Ballwechsel abschließen.
   if (state.current > 0 && now - state.lastHit > state.rallyTimeoutMs) endRally();
@@ -258,14 +261,19 @@ const duel = {
   confetti: { parts: [], raf: 0, until: 0 },
 };
 
+function duelSetControlsDisabled(disabled) {
+  $("toggleBtn").disabled = disabled;
+}
+
 function duelSetUIIdle() {
   duel.phase = "idle";
   $("duelSetup").hidden = true;
   $("duelActive").hidden = true;
+  $("duelTeamPopup").hidden = true;
   $("tapPad").hidden = false;
   $("counterCard").hidden = false;
   $("challengeSection").hidden = false;
-  $("rallyControls").hidden = false;
+  duelSetControlsDisabled(false);
 }
 
 function duelOpenSetup() {
@@ -274,7 +282,7 @@ function duelOpenSetup() {
   $("tapPad").hidden = true;
   $("counterCard").hidden = true;
   $("challengeSection").hidden = true;
-  $("rallyControls").hidden = true;
+  duelSetControlsDisabled(true);
   $("duelActive").hidden = true;
   $("duelSetup").hidden = false;
 }
@@ -304,6 +312,20 @@ function duelStart() {
   duelBeginTurn("A");
 }
 
+function showDuelTeamPopup(name, team, callback) {
+  const el = $("duelTeamPopup");
+  $("duelTeamPopupName").textContent = name;
+  $("duelTeamPopupName").className = "duel-team-popup-name team-" + team.toLowerCase();
+  el.hidden = false;
+  el.classList.remove("show");
+  void el.offsetWidth;
+  el.classList.add("show");
+  setTimeout(() => {
+    el.classList.remove("show");
+    setTimeout(() => { el.hidden = true; callback(); }, 260);
+  }, 1100);
+}
+
 function duelBeginTurn(team) {
   duel.team = team;
   duel.hits = 0;
@@ -317,8 +339,9 @@ function duelBeginTurn(team) {
   $("duelLiveCount").textContent = "0";
   $("duelActive").hidden = false;
   if (state.mode === "manual") $("tapPad").hidden = true;
-  showToast(name + " ist dran!");
-  runCountdown(async () => {
+
+  showDuelTeamPopup(name, team, async () => {
+    if (duel.phase !== "turn") return; // Duell zwischenzeitlich abgebrochen
     if (state.mode === "audio") {
       if (!(await audio.start())) { duelHardReset(); return; }
     } else if (state.mode === "visual") {
@@ -326,17 +349,20 @@ function duelBeginTurn(team) {
     } else {
       $("tapPad").hidden = false;
     }
-    duel.turnRunning = true;
-    duel.timeLeft = duel.turnSec;
-    duelUpdateTimer();
-    duel.timer = setInterval(duelTick, 1000);
+    if (duel.phase !== "turn") return; // waehrend der Erlaubnis-Abfrage abgebrochen
+    runCountdown(() => {
+      duel.turnRunning = true;
+      duel.timeLeft = duel.turnSec;
+      duelUpdateTimer();
+      duel.timer = setInterval(duelTick, 1000);
+    });
   });
 }
 
 function duelUpdateTimer() {
   const fmt = challengeFmt(duel.timeLeft);
   const pct = (duel.timeLeft / duel.turnSec) * 100;
-  const warn = duel.timeLeft <= 5;
+  const warn = duel.timeLeft <= 10;
   $("duelTurnTimer").textContent = fmt;
   $("duelTurnTimer").classList.toggle("warn", warn);
   $("duelTurnPfill").style.width = pct + "%";
@@ -346,9 +372,10 @@ function duelUpdateTimer() {
 function duelTick() {
   duel.timeLeft = Math.max(0, duel.timeLeft - 1);
   duelUpdateTimer();
-  if (duel.timeLeft > 0 && duel.timeLeft <= 3) {
-    if (state.mode === "audio") muteAudio(500);
-    playBeep(duel.timeLeft === 1 ? 1047 : 659, 0.14, 0.4);
+  if (duel.timeLeft > 0 && duel.timeLeft <= 10) {
+    if (state.mode === "audio") muteAudio(450);
+    const urgent = duel.timeLeft <= 3;
+    playBeep(urgent ? (duel.timeLeft === 1 ? 1047 : 659) : 587, urgent ? 0.14 : 0.1, urgent ? 0.4 : 0.22);
   }
   if (duel.timeLeft > 0) return;
   clearInterval(duel.timer);

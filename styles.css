@@ -868,13 +868,48 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   background: linear-gradient(180deg, #fff, var(--accent-2));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-.duel-turn-timer { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); margin-top: 4px; }
-.duel-turn-timer.warn { color: var(--danger); }
+.duel-turn-timer {
+  font-size: clamp(34px, 10vw, 50px); font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--accent); margin-top: 4px; transition: color .2s;
+}
+.duel-turn-timer.warn { color: var(--danger); animation: micpulse 1s ease-in-out infinite; }
 .duel-turn-pbar { width: 80%; max-width: 220px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
 .duel-turn-pfill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s linear, background .3s; }
 .duel-turn-pfill.warn { background: var(--danger); }
 
 .tap-pad.hit { animation: pop .28s ease; }
+
+.btn:disabled, .btn:disabled:active {
+  opacity: 0.38; filter: grayscale(0.4); cursor: not-allowed; transform: none;
+}
+
+/* ===================== Team-Duell: Wer-ist-dran Popup ===================== */
+.duel-team-popup {
+  position: fixed; inset: 0; z-index: 210;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  opacity: 0; transition: opacity .26s ease;
+}
+.duel-team-popup.show { opacity: 1; }
+.duel-team-popup[hidden] { display: none; }
+.duel-team-popup-card {
+  text-align: center;
+  background: rgba(11,17,32,.9);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 26px 44px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  transform: scale(.8) translateY(14px);
+  transition: transform .3s cubic-bezier(.2,1.4,.3,1);
+}
+.duel-team-popup.show .duel-team-popup-card { transform: scale(1) translateY(0); }
+.duel-team-popup-name {
+  display: block; font-size: clamp(34px, 10vw, 52px); font-weight: 900;
+}
+.duel-team-popup-name.team-a { color: var(--accent); text-shadow: 0 0 26px rgba(56,189,248,.5); }
+.duel-team-popup-name.team-b { color: var(--accent-2); text-shadow: 0 0 26px rgba(249,115,22,.5); }
+.duel-team-popup-sub { display: block; color: var(--muted); font-size: 15px; font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 1.5px; }
 
 /* Ergebnis */
 .duel-result-overlay {
