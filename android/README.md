@@ -1,48 +1,39 @@
 # Android / Play Store Vorbereitung
 
-Die Web-App bleibt die Hauptversion. Fuer den Play Store ist eine Trusted Web Activity (TWA) sinnvoll: Android startet dabei die bestehende PWA fullscreen, ohne die Browser-Leiste.
+Die Web-App bleibt die Hauptversion. Fuer den Play Store laeuft die App als Trusted Web Activity (TWA): Android startet dabei die bestehende PWA fullscreen, ohne die Browser-Leiste.
 
-## Geplante Android-Daten
+## Android-Daten (aktuell)
 
 - App-Name: Ping Pong Counter
 - Package-Name: de.appreich.pingpongcounter
-- Web Manifest: https://<deine-domain>/manifest.json
-- Start-URL: https://<deine-domain>/
+- Web Manifest: https://schmidi321.github.io/pingpong-tracker/manifest.json
+- Start-URL: https://schmidi321.github.io/pingpong-tracker/
 - Orientation: portrait
+- Signing-Key bereits erzeugt (Alias `pingpongcounter`), Keystore offline gesichert - nicht ins Repo einchecken.
 
-## Build-Weg mit Bubblewrap
+## Build-Weg mit PWABuilder
 
-1. Web-App auf eine feste HTTPS-Domain deployen.
-2. Lighthouse/PWA-Check laufen lassen: Manifest, Service Worker, Icons, HTTPS.
-3. Bubblewrap installieren:
+Der Android-Build laeuft ueber [PWABuilder](https://www.pwabuilder.com/) (nicht Bubblewrap):
 
-```powershell
-npm i -g @bubblewrap/cli
-```
-
-4. Android-Projekt erzeugen:
-
-```powershell
-bubblewrap init --manifest=https://<deine-domain>/manifest.json
-```
-
-5. Beim Init als Package-Name `de.appreich.pingpongcounter` verwenden.
-6. App Bundle bauen:
-
-```powershell
-bubblewrap build
-```
-
-7. SHA-256-Fingerprint aus dem Release-Key in `.well-known/assetlinks.json` eintragen.
-8. `.well-known/assetlinks.json` auf derselben HTTPS-Domain deployen.
-9. Im Play Console Internal Testing hochladen und TWA-Verifikation pruefen.
+1. Web-App auf der HTTPS-Domain deployen (bereits erledigt via GitHub Pages).
+2. Auf pwabuilder.com die Live-URL eingeben, Android-Paket generieren lassen.
+3. `versionCode`/`versionName` bei jedem neuen Release hochzaehlen.
+4. Mit dem vorhandenen Keystore (Alias `pingpongcounter`) signieren - niemals mit neuem Key, sonst lehnt
+   Play den Upload als "andere App" ab.
+5. SHA-256-Fingerprint des Upload-Keys **und** den Play-App-Signing-Fingerprint (aus der Play Console,
+   Setup > App-Integritaet) in `.well-known/assetlinks.json` eintragen (siehe PLAY_STORE_CHECKLIST.md,
+   Abschnitt "TWA / Digital Asset Links" - aktuell noch offen, verursacht die sichtbare URL-Leiste).
+6. Im Play Console Internal Testing hochladen und TWA-Start pruefen (muss fullscreen ohne Browser-Leiste sein).
 
 ## Hinweise
 
 - Kamera/Mikro brauchen HTTPS und die normalen Browser-Berechtigungen.
-- Wenn Digital Asset Links nicht stimmen, startet Android die Seite als Custom Tab statt als echte fullscreen TWA.
-- Fuer Play Store Screenshots koennen die vorhandenen `screenshots/screen-score.png` und `screenshots/screen-rally.png` als Grundlage dienen.
+- Wenn Digital Asset Links nicht vollstaendig stimmen, zeigt Android weiterhin die Browser-URL-Leiste statt
+  einer echten fullscreen TWA.
+- Screenshots liegen in `screenshots/` (screen-score.png, screen-rally.png) - fuer den Store-Upload noch
+  durch aktuelle, finale Aufnahmen ersetzen (siehe Checkliste, "Noch offen").
+
 ## Ergaenzende Unterlagen
 
-- PLAY_STORE_CHECKLIST.md: Play-Console-Texte, Testplan und offene Punkte.
+- PLAY_STORE_CHECKLIST.md: Play-Console-Texte, Testplan, aktueller Funktionsumfang und offene Punkte.
 - PRIVACY_POLICY_DRAFT.md: Entwurf fuer die Datenschutzseite.

@@ -6,75 +6,114 @@
 - Entwickler/Brand: AppReich
 - Paketname: `de.appreich.pingpongcounter`
 - App-Typ: Trusted Web Activity (TWA) fuer die bestehende PWA
-- Start-URL: feste HTTPS-Domain der Web-App
+- Live-Domain: https://schmidi321.github.io/pingpong-tracker/ (bereits live, HTTPS, Service Worker aktiv)
 - Zielgruppe: Tischtennis-Spieler, Trainer, Vereine, Hobbygruppen
 - Kategorie: Sport / Tools
+- Signing-Key: bereits erstellt (PWABuilder), Alias `pingpongcounter`, Keystore offline auf USB-Stick gesichert -
+  NICHT ins Repo einchecken
 
-## Vor dem Build klaeren
+## Aktueller Funktionsumfang (Stand: Juli 2026)
 
-- Finale HTTPS-Domain festlegen.
-- `manifest.json` auf dieser Domain erreichbar machen.
-- Service Worker und Offline-Start testen.
-- Kamera und Mikrofon in der Browser-Version auf Android testen.
-- App-Icon und Screenshots finalisieren.
-- Datenschutzerklaerung als oeffentliche URL bereitstellen.
+- Punktezaehler fuer zwei Spieler, Tippen oder Sprachsteuerung ("blau"/"orange")
+- Rally-/Ballwechsel-Zaehler per Kamera, Ton oder Tippen
+- Team-Duell: zwei Teams treten abwechselnd gegeneinander an (waehlbare Rundenzahl und Zeit je Team),
+  funktioniert in allen drei Erkennungsmodi, mit grafischem Ergebnisvergleich am Ende
+- Challenge-Modus: Zeitlimit (1/2/3/5 Min) mit Highscore-Tracking je Zeitfenster
+- Meilenstein-Animationen alle 25 Treffer, Sprachansage alle 50
+- SixSeven-Moment: optionale Animation bei Punktestand 6:7 / 7:6 (standardmaessig aus, in Einstellungen aktivierbar)
+- TV-/Zweitbildschirm-Anzeige per BroadcastChannel (kein echtes Screen-Mirroring, siehe Hinweis unten)
+- Bluetooth-Kopfhoerer-Taste als Fernbedienung (Media Session API)
+- Merkt sich den zuletzt verwendeten Rally-Erkennungsmodus
+- Neues App-Icon/Splash-Screen ("67"-Design: Schlaeger, Ball, Ping-Pong-Branding)
+- Support-/Spenden-Link (PayPal.Me), keine Freischaltung oder Gegenleistung
 
 ## Play Console Angaben
 
-### Kurzbeschreibung
+### Kurzbeschreibung (max. 80 Zeichen)
 
-Tischtennis zaehlen: Punkte, Sprache und Ballwechsel per Kamera, Ton oder Tippen.
+Tischtennis zaehlen: Punkte, Rally per Kamera/Ton/Tippen, Team-Duell, Sprachsteuerung.
+
+(79 Zeichen)
 
 ### Lange Beschreibung
 
-Ping Pong Counter ist ein einfacher Tischtennis-Zaehler fuer Training, Hobbyspiel und Verein. Zaehle Punkte per Tippen oder Sprache und erfasse Ballwechsel per Kamera, Ton oder manuell. Die App ist schnell gestartet, uebersichtlich und fuer den Einsatz direkt an der Platte gedacht.
+Ping Pong Counter ist der Tischtennis-Begleiter fuer Training, Hobbyspiel und Verein - schnell gestartet, uebersichtlich, direkt an der Platte nutzbar.
 
-Funktionen:
-- Punktestand fuer zwei Spieler
-- Sprachsteuerung mit Blau/Orange
-- Rally-Zaehler per Kamera, Ton oder Tippen
-- Bestwert, letzter Ballwechsel und Runden
-- Meilensteine mit Animation und Sound
-- freiwillige Unterstuetzung per PayPal.Me ohne Freischaltung oder Gegenleistung
+PUNKTE ZAEHLEN
+- Punktestand fuer zwei Spieler per Tippen
+- Sprachsteuerung: einfach "blau" oder "orange" sagen
+- Saetze, Aufschlagwechsel und Matchstand automatisch im Blick
+- Optionaler "SixSeven"-Moment bei 6:7/7:6 zum Spass zwischendurch
+
+BALLWECHSEL ZAEHLEN (RALLY)
+- Automatische Erkennung per Kamera oder Mikrofon - oder einfach per Tippen
+- Bestwert, letzter Ballwechsel und Rundenzahl auf einen Blick
+- Meilenstein-Animationen und Sprachansagen bei runden Zahlen
+- Zeit-Challenge mit Highscore: wie viele Ballwechsel schaffst du in 1, 2, 3 oder 5 Minuten?
+
+TEAM-DUELL
+- Zwei Teams treten abwechselnd in mehreren Runden gegeneinander an
+- Funktioniert per Kamera, Ton oder Tippen - Teamnamen, Rundenzahl und Zeit frei waehlbar
+- Grafischer Vergleich mit Balkendiagramm am Ende zeigt den Sieger
+
+WEITERE FUNKTIONEN
+- TV-/Zweitbildschirm-Anzeige fuer eine grosse Zaehler-Ansicht
+- Bluetooth-Kopfhoerer-Taste als Fernbedienung
+- Funktioniert offline nach dem ersten Laden
+- Keine Anmeldung, keine Werbung, keine Kontosammlung
+
+Ping Pong Counter wird von AppReich entwickelt und staendig weiter verbessert. Feedback ist jederzeit willkommen.
 
 ### Keywords intern
 
-Tischtennis, Ping Pong, Zaehler, Scoreboard, Punkte, Ballwechsel, Rally, Training, Verein
+Tischtennis, Ping Pong, Zaehler, Scoreboard, Punkte, Ballwechsel, Rally, Training, Verein, Duell, Team
 
 ## Datenschutz / Berechtigungen
 
-Voraussichtlich relevante Berechtigungen:
-- Kamera: nur fuer Rally-Erkennung per Kamera
-- Mikrofon: fuer Sprachsteuerung und Rally-Erkennung per Ton
+Relevante Berechtigungen:
+- Kamera: nur fuer Rally-/Duell-Erkennung per Kamera
+- Mikrofon: fuer Sprachsteuerung und Rally-/Duell-Erkennung per Ton
 
-Hinweis fuer Data Safety:
-- Kamera-/Mikrofondaten werden lokal im Browser verarbeitet.
-- Keine Anmeldung in der Basisversion.
-- Keine Weitergabe von Kamera-/Mikrofondaten.
-- LocalStorage speichert Einstellungen wie Namen, Sound und Hinweise lokal auf dem Geraet.
+Hinweis fuer Data Safety Form:
+- Kamera-/Mikrofondaten werden ausschliesslich lokal im Browser/der App verarbeitet, keine Uebertragung an einen Server.
+- Keine Anmeldung/kein Konto in der App.
+- Keine Weitergabe von Kamera-/Mikrofon-/Nutzungsdaten an Dritte.
+- LocalStorage speichert Einstellungen (Namen, Sound, Hinweise, zuletzt genutzter Modus) nur lokal auf dem Geraet.
 
 ## TWA / Digital Asset Links
 
-1. Release-Key erzeugen oder vorhandenen Play-App-Signing-Fingerprint verwenden.
-2. SHA-256 Fingerprint in `.well-known/assetlinks.json` eintragen.
-3. Datei unter `https://<domain>/.well-known/assetlinks.json` bereitstellen.
-4. TWA im internen Test pruefen: startet fullscreen ohne Browser-Leiste.
+1. Signing-Key existiert bereits (PWABuilder-Export) - Alias `pingpongcounter`, Fingerprint siehe eigene Notizen (nicht im Repo).
+2. **Bekanntes offenes Problem:** Die Browser-URL-Leiste erscheint noch in der TWA statt echtem Fullscreen.
+   Ursache: `assetlinks.json` enthaelt vermutlich nur den Upload-Key-Fingerprint, aber Google signiert die
+   Store-Version mit einem eigenen "Play App Signing"-Zertifikat. Fix: in der Play Console unter
+   *Setup > App-Integritaet > App-Signaturschluessel-Zertifikat* den zweiten SHA-256-Fingerprint holen und
+   zusaetzlich (als weiteren Eintrag) in `.well-known/assetlinks.json` eintragen.
+3. Datei muss unter `https://schmidi321.github.io/.well-known/assetlinks.json` erreichbar sein
+   (Achtung: GitHub Pages Projekt-Seiten liegen unter `/pingpong-tracker/` - `.well-known` muss auf
+   Domain-Root, ggf. eigene Domain oder GitHub Pages User-Site noetig).
+4. Nach Fix: TWA im internen Test pruefen - muss fullscreen ohne Browser-Leiste starten.
 
 ## Testplan Internal Testing
 
 - App startet offline nach erstem Laden.
-- Punkte: Tippen auf beide Spieler zaehlt korrekt.
-- Punkte: Mikrofon startet/stoppt, Blau/Orange zaehlt korrekt.
+- Punkte: Tippen auf beide Spieler zaehlt korrekt, Sprachsteuerung "blau"/"orange" funktioniert.
 - Rally Kamera: Berechtigung, Start/Stopp, Anzeige bleibt auf einer Seite.
-- Rally Ton: erster Aufschlag-Impuls wird ignoriert, danach wird sauber gezaehlt.
+- Rally Ton: erster Aufschlag-Impuls wird ignoriert, danach sauberes Zaehlen.
 - Rally Tippen: Start, Tippen, Reset.
-- Einstellungen: Sound/Hinweise an und aus.
+- Team-Duell: Setup, Team-Wechsel, Ergebnis-Anzeige in allen drei Modi.
+- Challenge-Modus: Zeitlimit laeuft ab, Highscore wird gespeichert.
+- Einstellungen: Sound/Hinweise/SixSeven an und aus, TV-Anzeige oeffnet.
 - Support/PayPal.Me Link oeffnet korrekt.
 
-## Noch offen
+## Noch offen (bevor Play Store Upload)
 
-- Finale Domain eintragen.
-- Finale Screenshots aus aktueller UI erstellen.
-- Datenschutzerklaerung veroeffentlichen.
-- Assetlinks mit echtem SHA-256 erzeugen.
-- AAB mit Bubblewrap bauen und im internen Test hochladen.
+- [ ] Screenshots aus aktueller UI erstellen (mind. 2, empfohlen 4-8; Play Store: 320-3840px je Seite,
+      Seitenverhaeltnis zwischen 16:9 und 9:16). Vorlage/Mockup liegt vor, muss noch final gerendert werden.
+- [ ] Feature-Grafik 1024x500 fuer die Store-Listing-Seite erstellen.
+- [ ] Datenschutzerklaerung (`PRIVACY_POLICY_DRAFT.md`) veroeffentlichen und URL in Play Console eintragen.
+- [ ] assetlinks.json um Play-App-Signing-Fingerprint ergaenzen (siehe TWA-Abschnitt oben) - behebt die
+      sichtbare Browser-URL-Leiste.
+- [ ] Google Play Console Account/App-Eintrag anlegen (falls noch nicht geschehen), Kategorie + Zielgruppe +
+      Altersfreigabe-Fragebogen ausfuellen.
+- [ ] Data Safety Form in der Play Console ausfuellen (Inhalte siehe Abschnitt oben).
+- [ ] Signiertes AAB (aus PWABuilder-Export) im internen Test hochladen und TWA-Start pruefen.
