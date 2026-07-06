@@ -5,7 +5,8 @@ Die Web-App bleibt die Hauptversion. Fuer den Play Store laeuft die App als Trus
 ## Android-Daten (aktuell)
 
 - App-Name: Ping Pong Counter
-- Package-Name: de.appreich.pingpongcounter
+- Package-Name: io.github.schmidi321.pingpongcounter (bestaetigt durch Play Console beim ersten Upload;
+  fruehere Notiz "de.appreich.pingpongcounter" war falsch/veraltet)
 - Web Manifest: https://schmidi321.github.io/pingpong-tracker/manifest.json
 - Start-URL: https://schmidi321.github.io/pingpong-tracker/
 - Orientation: portrait

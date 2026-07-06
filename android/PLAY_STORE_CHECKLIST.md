@@ -4,7 +4,7 @@
 
 - App-Name: Ping Pong Counter
 - Entwickler/Brand: AppReich
-- Paketname: `de.appreich.pingpongcounter`
+- Paketname: `io.github.schmidi321.pingpongcounter` (bestaetigt durch Play Console beim ersten Upload)
 - App-Typ: Trusted Web Activity (TWA) fuer die bestehende PWA
 - Live-Domain: https://schmidi321.github.io/pingpong-tracker/ (bereits live, HTTPS, Service Worker aktiv)
 - Zielgruppe: Tischtennis-Spieler, Trainer, Vereine, Hobbygruppen
