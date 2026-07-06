@@ -20,15 +20,31 @@
   "screenshots": [
     {
       "src": "screenshots/screen-score.png",
-      "sizes": "390x844",
+      "sizes": "1236x2676",
       "type": "image/png",
+      "form_factor": "narrow",
       "label": "Punktestand mit Spracheingabe"
     },
     {
       "src": "screenshots/screen-rally.png",
-      "sizes": "390x844",
+      "sizes": "1236x2676",
       "type": "image/png",
-      "label": "Ballwechsel-Zähler"
+      "form_factor": "narrow",
+      "label": "Ballwechsel-Zähler per Kamera, Ton oder Tippen"
+    },
+    {
+      "src": "screenshots/screen-duel-active.png",
+      "sizes": "1236x2676",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Team-Duell: laufende Runde"
+    },
+    {
+      "src": "screenshots/screen-duel-result.png",
+      "sizes": "1236x2676",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Team-Duell: Ergebnis"
     }
   ]
 }
