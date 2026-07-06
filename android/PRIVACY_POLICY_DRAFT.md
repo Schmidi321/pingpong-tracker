@@ -5,7 +5,7 @@ Dieser Entwurf ist als Arbeitsgrundlage fuer die Play Console gedacht und sollte
 ## Verantwortlicher
 
 Michael Schmidt / AppReich
-Kontakt: m_schmitti@gmx.de
+Kontakt: info@blitzreich.de
 
 ## Welche Daten verarbeitet die App?
 
@@ -29,4 +29,4 @@ Die App kann Links zu Support-E-Mail und PayPal.Me enthalten. Beim Oeffnen exter
 
 ## Kontakt
 
-Bei Fragen zum Datenschutz: m_schmitti@gmx.de
+Bei Fragen zum Datenschutz: info@blitzreich.de
