@@ -346,7 +346,7 @@
                   (window.AudioContext || window.webkitAudioContext)),
     ctx: null, analyser: null, stream: null, buf: null, raf: 0,
     active: false, armed: true, noiseFloor: 0.02,
-    clapCount: 0, clapTimer: null, muteUntil: 0,
+    clapCount: 0, clapTimer: null, muteUntil: 0, aboveSince: 0,
 
     async start() {
       if (!this.supported) { toast("Klatsch-Steuerung wird hier nicht unterstützt"); return; }
@@ -363,7 +363,7 @@
       this.analyser.fftSize = 1024;
       src.connect(this.analyser);
       this.buf = new Uint8Array(this.analyser.fftSize);
-      this.armed = true; this.clapCount = 0; this.muteUntil = 0;
+      this.armed = true; this.clapCount = 0; this.muteUntil = 0; this.aboveSince = 0;
       setVoiceUI(true);
       await this.autoBaseline();
       if (!this.active) return; // inzwischen wieder gestoppt
@@ -397,14 +397,16 @@
       if (peak < this.noiseFloor + 0.02) this.noiseFloor = this.noiseFloor * 0.97 + peak * 0.03;
       // deutlich groessere Marge als beim Rally-Zaehler: ein Klatscher ist ein
       // kurzer, scharfer Impuls, kein Dauergeraeusch - so faellt Gemurmel/Ballwechsel raus
-      const threshold = this.noiseFloor + 0.09;
+      const threshold = this.noiseFloor + 0.16;
       const now = performance.now();
       if (now >= this.muteUntil) {
         if (this.armed && peak >= threshold) {
           this.armed = false;
-          this.registerClap();
+          this.aboveSince = now;
         } else if (!this.armed && peak < threshold * 0.55) {
           this.armed = true;
+          // nur kurze, scharfe Impulse zaehlen - Sprechen/Reden haelt viel laenger an
+          if (now - this.aboveSince <= 130) this.registerClap();
         }
       }
       this.raf = requestAnimationFrame(() => this.loop());
@@ -529,7 +531,7 @@
     active: false, state: "off",
     ctx: null, analyser: null, stream: null, buf: null, raf: 0,
     armed: true, noiseFloor: 0.02, hits: 0, lastHit: 0, endMs: 1800,
-    winArmed: true, winClaps: 0, winTimer: null,
+    winArmed: true, winClaps: 0, winTimer: null, winAboveSince: 0,
 
     toggle() { this.active ? this.stop() : this.start(); },
 
@@ -597,18 +599,22 @@
         // Wer hat gewonnen? -> 1x klatschen = Spieler 1, 2x klatschen = Spieler 2
         // (bewusst kein SpeechRecognition hier - deren Android-Systempiepton
         // würde bei jedem Neustart-Zyklus während der Wartezeit ausgelöst)
-        const threshold = this.noiseFloor + 0.09; // groessere Marge: Klatscher statt Ballwechsel
+        const threshold = this.noiseFloor + 0.16; // groessere Marge: Klatscher statt Reden/Ballwechsel
         if (this.winArmed && peak >= threshold) {
           this.winArmed = false;
-          this.winClaps++;
-          clearTimeout(this.winTimer);
-          this.winTimer = setTimeout(() => {
-            const p = this.winClaps >= 2 ? 2 : 1;
-            this.winClaps = 0;
-            this.assign(p);
-          }, 550);
+          this.winAboveSince = now;
         } else if (!this.winArmed && peak < threshold * 0.55) {
           this.winArmed = true;
+          // nur kurze, scharfe Impulse zaehlen - Sprechen/Reden haelt viel laenger an
+          if (now - this.winAboveSince <= 130) {
+            this.winClaps++;
+            clearTimeout(this.winTimer);
+            this.winTimer = setTimeout(() => {
+              const p = this.winClaps >= 2 ? 2 : 1;
+              this.winClaps = 0;
+              this.assign(p);
+            }, 550);
+          }
         }
       }
       this.raf = requestAnimationFrame(() => this.loop());
