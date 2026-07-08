@@ -335,73 +335,105 @@
     if (v === "rally") showHelp("rally");
   }
 
-  /* ----------------------- Sprachsteuerung ---------------------- */
-  /* "eins"/"1" → Punkt für Spieler 1, "zwei"/"2" → Spieler 2.
-     Web Speech API (Chrome/Edge/Android), braucht Mikrofon + HTTPS. */
-  const ONES = ["1", "eins", "ein", "eis", "einz", "ans", "heins", "reins", "blau"];
-  const TWOS = ["2", "zwei", "zwo", "zwai", "zwein", "zweit", "swei", "schwei", "orange"];
-  function parsePlayer(txt) {
-    const low = txt.toLowerCase();
-    // Spielernamen (falls gesetzt) erkennen
-    const n1 = (S.names[1] || "").toLowerCase(), n2 = (S.names[2] || "").toLowerCase();
-    if (n1 && n1 !== "spieler 1" && low.includes(n1)) return 1;
-    if (n2 && n2 !== "spieler 2" && low.includes(n2)) return 2;
-    let p = 0;
-    for (const t of low.replace(/[.,!?]/g, " ").split(/\s+/)) {
-      if (ONES.includes(t)) p = 1;
-      else if (TWOS.includes(t)) p = 2;
-    }
-    return p; // sonst: zuletzt genannte Zahl/Farbe
-  }
-
+  /* ----------------------- Klatsch-Steuerung ---------------------- */
+  /* 1x klatschen -> Punkt fuer Spieler 1, 2x klatschen (kurz hintereinander)
+     -> Punkt fuer Spieler 2. Laeuft komplett lokal ueber die Mikro-Lautstaerke
+     (Web Audio), bewusst OHNE SpeechRecognition: die Android-Systemerkennung
+     spielt bei jedem Start/Neustart einen nicht abschaltbaren System-Piepton -
+     bei Dauerlauschen waehrend des Spiels stoerte das staendig. */
   const Voice = {
-    supported: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
-    rec: null, active: false, lastP: 0, lastT: 0,
+    supported: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia &&
+                  (window.AudioContext || window.webkitAudioContext)),
+    ctx: null, analyser: null, stream: null, buf: null, raf: 0,
+    active: false, armed: true, noiseFloor: 0.02,
+    clapCount: 0, clapTimer: null, muteUntil: 0,
 
-    start() {
-      if (!this.supported) { toast("Sprachsteuerung wird hier nicht unterstützt"); return; }
+    async start() {
+      if (!this.supported) { toast("Klatsch-Steuerung wird hier nicht unterstützt"); return; }
       if (AutoRally.active) AutoRally.stop();              // Mikro nicht doppelt belegen
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const rec = new SR();
-      rec.lang = "de-DE";
-      rec.continuous = true;
-      rec.interimResults = true;             // sofort reagieren (Zwischenergebnisse)
-      rec.maxAlternatives = 4;               // mehr Kandidaten → öfter erkannt
-      rec.onresult = (e) => {
-        const r = e.results[e.results.length - 1];
-        let p = 0;
-        for (let a = 0; a < r.length; a++) { p = parsePlayer(r[a].transcript); if (p) break; }
-        if (!p) return;
-        const now = performance.now();
-        if (p === this.lastP && now - this.lastT < 2500) return;
-        this.lastP = p; this.lastT = now;
-        if (S.matchOver) { toast("Match ist beendet"); return; }
-        addPoint(p);
-        winAnim(p);
-      };
-      rec.onerror = (e) => {
-        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-          toast("Mikrofon-Zugriff nötig"); this.stop(true);
-        }
-      };
-      rec.onend = () => { if (this.active) { try { rec.start(); } catch (_) {} } };
-      this.rec = rec; this.active = true;
       try {
-        rec.start();
-      } catch (_) {
-        this.active = false; this.rec = null; setVoiceUI(false);
-        toast("Sprache konnte nicht starten");
-        return;
-      }
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        });
+      } catch (_) { toast("Mikrofon-Zugriff nötig"); return; }
+      this.active = true; // blockiert Re-Entry, falls waehrend der Kalibrierung nochmal geklickt wird
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = this.ctx.createMediaStreamSource(this.stream);
+      this.analyser = this.ctx.createAnalyser();
+      this.analyser.fftSize = 1024;
+      src.connect(this.analyser);
+      this.buf = new Uint8Array(this.analyser.fftSize);
+      this.armed = true; this.clapCount = 0; this.muteUntil = 0;
       setVoiceUI(true);
-      toast("Sprache aktiviert");
+      await this.autoBaseline();
+      if (!this.active) return; // inzwischen wieder gestoppt
+      this.loop();
+      const n1 = S.names[1] || "Spieler 1", n2 = S.names[2] || "Spieler 2";
+      toast(`Klatsch-Steuerung an – 1× = ${n1}, 2× = ${n2}`);
+    },
+
+    autoBaseline() {
+      // kurze, stille Messung beim Start (siehe app.js audio.autoBaseline)
+      return new Promise((resolve) => {
+        const samples = [];
+        const t0 = performance.now();
+        const grab = () => {
+          this.analyser.getByteTimeDomainData(this.buf);
+          let p = 0;
+          for (let i = 0; i < this.buf.length; i++) p = Math.max(p, Math.abs(this.buf[i] - 128) / 128);
+          samples.push(p);
+          if (performance.now() - t0 < 400) requestAnimationFrame(grab);
+          else { this.noiseFloor = samples.reduce((a, b) => a + b, 0) / samples.length; resolve(); }
+        };
+        requestAnimationFrame(grab);
+      });
+    },
+
+    loop() {
+      if (!this.active) return;
+      this.analyser.getByteTimeDomainData(this.buf);
+      let peak = 0;
+      for (let i = 0; i < this.buf.length; i++) { const v = Math.abs(this.buf[i] - 128) / 128; if (v > peak) peak = v; }
+      if (peak < this.noiseFloor + 0.02) this.noiseFloor = this.noiseFloor * 0.97 + peak * 0.03;
+      // deutlich groessere Marge als beim Rally-Zaehler: ein Klatscher ist ein
+      // kurzer, scharfer Impuls, kein Dauergeraeusch - so faellt Gemurmel/Ballwechsel raus
+      const threshold = this.noiseFloor + 0.09;
+      const now = performance.now();
+      if (now >= this.muteUntil) {
+        if (this.armed && peak >= threshold) {
+          this.armed = false;
+          this.registerClap();
+        } else if (!this.armed && peak < threshold * 0.55) {
+          this.armed = true;
+        }
+      }
+      this.raf = requestAnimationFrame(() => this.loop());
+    },
+
+    registerClap() {
+      this.clapCount++;
+      clearTimeout(this.clapTimer);
+      this.clapTimer = setTimeout(() => this.finalizeClaps(), 550);
+    },
+
+    finalizeClaps() {
+      const p = this.clapCount >= 2 ? 2 : 1;
+      this.clapCount = 0;
+      if (S.matchOver) { toast("Match ist beendet"); return; }
+      addPoint(p);
+      winAnim(p);
+      this.muteUntil = performance.now() + 1200; // Jubel/Reden nach dem Punkt nicht als Klatscher werten
     },
 
     stop(silent) {
       this.active = false;
-      if (this.rec) { try { this.rec.stop(); } catch (_) {} this.rec = null; }
+      clearTimeout(this.clapTimer); this.clapCount = 0;
+      cancelAnimationFrame(this.raf);
+      if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
+      if (this.ctx) { try { this.ctx.close(); } catch (_) {} }
+      this.ctx = this.analyser = this.stream = null;
       setVoiceUI(false);
-      if (!silent) toast("Sprache aus");
+      if (!silent) toast("Klatsch-Steuerung aus");
     },
 
     toggle() { this.active ? this.stop() : this.start(); },
@@ -412,8 +444,8 @@
     if (btn) {
       btn.textContent = "🎤";
       btn.classList.toggle("live", Voice.active);
-      btn.setAttribute("aria-label", Voice.active ? "Sprachsteuerung stoppen" : "Sprachsteuerung starten");
-      btn.title = Voice.active ? "Sprachsteuerung stoppen" : "Sprachsteuerung starten";
+      btn.setAttribute("aria-label", Voice.active ? "Klatsch-Steuerung stoppen" : "Klatsch-Steuerung starten");
+      btn.title = Voice.active ? "Klatsch-Steuerung stoppen" : "Klatsch-Steuerung starten";
     }
   }
   function updateVoiceBtn() { setVoiceUI(); }
@@ -488,7 +520,7 @@
     const el = $("autoBanner"); if (!el) return;
     el.hidden = false;
     el.classList.toggle("pending", mode === "pending");
-    if (mode === "pending") el.textContent = `🏁 Punkt! (${hits} Schläge) - wer? 'eins/zwei' sagen oder tippen`;
+    if (mode === "pending") el.textContent = `🏁 Punkt! (${hits} Schläge) - wer? 1x/2x klatschen oder tippen`;
     else if (mode === "done") el.textContent = "🏆 Match beendet";
     else el.textContent = hits > 0 ? `🎧 Ballwechsel läuft · ${hits} Schläge` : "🎧 Auto-Rally aktiv · spielt los";
   }
@@ -496,7 +528,8 @@
   const AutoRally = {
     active: false, state: "off",
     ctx: null, analyser: null, stream: null, buf: null, raf: 0,
-    armed: true, noiseFloor: 0.02, hits: 0, lastHit: 0, endMs: 1800, rec: null,
+    armed: true, noiseFloor: 0.02, hits: 0, lastHit: 0, endMs: 1800,
+    winArmed: true, winClaps: 0, winTimer: null,
 
     toggle() { this.active ? this.stop() : this.start(); },
 
@@ -549,9 +582,9 @@
       let peak = 0;
       for (let i = 0; i < this.buf.length; i++) { const v = Math.abs(this.buf[i] - 128) / 128; if (v > peak) peak = v; }
       if (peak < this.noiseFloor + 0.02) this.noiseFloor = this.noiseFloor * 0.97 + peak * 0.03;
-      const threshold = this.noiseFloor + 0.04;   // dicht über Grundpegel = empfindlich
       const now = performance.now();
       if (this.state === "listening") {
+        const threshold = this.noiseFloor + 0.04;   // dicht über Grundpegel = empfindlich
         if (this.armed && peak >= threshold) {
           this.armed = false; this.hits++; this.lastHit = now;
           if (S.vibrate && navigator.vibrate) navigator.vibrate(6);
@@ -560,41 +593,38 @@
           this.armed = true;
         }
         if (this.hits > 0 && now - this.lastHit > this.endMs) this.endRally();
+      } else if (this.state === "pending") {
+        // Wer hat gewonnen? -> 1x klatschen = Spieler 1, 2x klatschen = Spieler 2
+        // (bewusst kein SpeechRecognition hier - deren Android-Systempiepton
+        // würde bei jedem Neustart-Zyklus während der Wartezeit ausgelöst)
+        const threshold = this.noiseFloor + 0.09; // groessere Marge: Klatscher statt Ballwechsel
+        if (this.winArmed && peak >= threshold) {
+          this.winArmed = false;
+          this.winClaps++;
+          clearTimeout(this.winTimer);
+          this.winTimer = setTimeout(() => {
+            const p = this.winClaps >= 2 ? 2 : 1;
+            this.winClaps = 0;
+            this.assign(p);
+          }, 550);
+        } else if (!this.winArmed && peak < threshold * 0.55) {
+          this.winArmed = true;
+        }
       }
       this.raf = requestAnimationFrame(() => this.loop());
     },
 
     endRally() {
       this.state = "pending";
+      this.winArmed = true; this.winClaps = 0; clearTimeout(this.winTimer);
       showAutoBanner("pending", this.hits);
       if (navigator.vibrate) navigator.vibrate(40);
       const sb = $("scoreboard"); if (sb) sb.classList.add("await-pick");
-      this.listenWinner();
     },
 
-    listenWinner() {
-      if (!Voice.supported) return;   // ohne Spracherkennung: nur Tippen
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const rec = new SR();
-      rec.lang = "de-DE"; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 4;
-      let done = false;
-      rec.onresult = (e) => {
-        if (done) return;
-        const r = e.results[e.results.length - 1];
-        let p = 0;
-        for (let a = 0; a < r.length; a++) { p = parsePlayer(r[a].transcript); if (p) break; }
-        if (p) { done = true; this.assign(p); }
-      };
-      rec.onerror = () => {};
-      rec.onend = () => { if (this.state === "pending" && this.active) { try { rec.start(); } catch (_) {} } };
-      this.rec = rec; try { rec.start(); } catch (_) {}
-    },
-
-    stopWinnerListen() { if (this.rec) { try { this.rec.stop(); } catch (_) {} this.rec = null; } },
-
-    assign(p) {                       // Gewinner per Stimme ODER Tipp
+    assign(p) {                       // Gewinner per Klatscher ODER Tipp
       if (!this.active) return;
-      this.stopWinnerListen();
+      clearTimeout(this.winTimer); this.winClaps = 0;
       const sb = $("scoreboard"); if (sb) sb.classList.remove("await-pick");
       addPoint(p); winAnim(p);
       if (S.matchOver) { this.state = "matchover"; showAutoBanner("done", 0); }
@@ -604,7 +634,7 @@
     stop() {
       this.active = false; this.state = "off";
       cancelAnimationFrame(this.raf);
-      this.stopWinnerListen();
+      clearTimeout(this.winTimer); this.winClaps = 0;
       if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
       if (this.ctx) { try { this.ctx.close(); } catch (_) {} }
       this.ctx = this.analyser = this.stream = null;
@@ -706,7 +736,7 @@
         key: "tt.helpScoreSeen",
         icon: "🏓",
         title: "Hinweis",
-        text: "Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und sag 'blau' oder 'orange'.",
+        text: "Tippe auf eine grosse Zahl, um einen Punkt zu vergeben. Oder tippe auf das Mikrofon und klatsche 1x (Spieler 1) oder 2x (Spieler 2).",
       }),
       rally: rallyHelpCopy,
     };
