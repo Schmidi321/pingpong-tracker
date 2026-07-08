@@ -514,10 +514,31 @@
       src.connect(this.analyser);
       this.buf = new Uint8Array(this.analyser.fftSize);
       this.active = true; this.armed = true;
+      await this.autoBaseline(); // Grundpegel geraeteabhaengig messen (Mikros streuen stark)
       setAutoUI(true); updateVoiceBtn();
       this.beginRally();
       this.loop();
       toast("🎧 Auto-Rally an – einfach spielen");
+    },
+
+    autoBaseline() {
+      // kurze, stille Messung beim Start (siehe app.js audio.autoBaseline)
+      return new Promise((resolve) => {
+        const samples = [];
+        const t0 = performance.now();
+        const grab = () => {
+          this.analyser.getByteTimeDomainData(this.buf);
+          let p = 0;
+          for (let i = 0; i < this.buf.length; i++) p = Math.max(p, Math.abs(this.buf[i] - 128) / 128);
+          samples.push(p);
+          if (performance.now() - t0 < 400) requestAnimationFrame(grab);
+          else {
+            this.noiseFloor = samples.reduce((a, b) => a + b, 0) / samples.length;
+            resolve();
+          }
+        };
+        requestAnimationFrame(grab);
+      });
     },
 
     beginRally() { this.state = "listening"; this.hits = 0; this.lastHit = 0; showAutoBanner("listening", 0); },

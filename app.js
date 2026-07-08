@@ -124,18 +124,23 @@ function runCountdown(callback) {
     numEl.classList.add("pop");
   }
 
+  function countdownBeep(freq, dur, vol) {
+    if (state.mode === "audio") muteAudio(dur * 1000 + 250); // eigener Piepton nicht als Hit werten
+    playBeep(freq, dur, vol);
+  }
+
   overlay.hidden = false;
   showN(3);
-  playBeep(523, 0.12, 0.4);
+  countdownBeep(523, 0.12, 0.4);
 
   state.countdownTimer = setInterval(() => {
     n--;
     if (n > 0) {
       showN(n);
-      playBeep(523, 0.12, 0.4);
+      countdownBeep(523, 0.12, 0.4);
     } else {
       showN("GO!");
-      playBeep(880, 0.22, 0.5);
+      countdownBeep(880, 0.22, 0.5);
       clearInterval(state.countdownTimer);
       state.countdownTimer = null;
       setTimeout(() => { overlay.hidden = true; callback(); }, 650);
@@ -604,8 +609,31 @@ const audio = {
     src.connect(this.analyser);
     this.buf = new Uint8Array(this.analyser.fftSize);
     this.armed = true;
+    await this.autoBaseline(); // Grundpegel geräteabhängig messen (Mikros streuen stark)
     this.loop();
     return true;
+  },
+
+  autoBaseline() {
+    // kurze, stille Messung beim Start – gleicht unterschiedliche Mikro-Rohpegel
+    // zwischen Geraeten (z.B. iPhone vs. Android) aus, ohne die Empfindlichkeits-
+    // Einstellung des Nutzers anzutasten
+    return new Promise((resolve) => {
+      const samples = [];
+      const t0 = performance.now();
+      const grab = () => {
+        this.analyser.getByteTimeDomainData(this.buf);
+        let p = 0;
+        for (let i = 0; i < this.buf.length; i++) p = Math.max(p, Math.abs(this.buf[i] - 128) / 128);
+        samples.push(p);
+        if (performance.now() - t0 < 400) requestAnimationFrame(grab);
+        else {
+          this.noiseFloor = samples.reduce((a, b) => a + b, 0) / samples.length;
+          resolve();
+        }
+      };
+      requestAnimationFrame(grab);
+    });
   },
 
   loop() {
