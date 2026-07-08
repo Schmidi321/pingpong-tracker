@@ -30,7 +30,11 @@
     matchOver: false,
     history: [],
     sixseven: false,
+    clapSensitivity: 0.5,
   };
+
+  // 0 (unempfindlich) .. 1 (empfindlich) -> Marge ueber dem Grundpegel
+  const clapMargin = () => 0.26 - S.clapSensitivity * 0.20;
 
   const setsToWin = () => Math.floor(S.bestOf / 2) + 1;
   const gamesPlayed = () => S.sets[1] + S.sets[2];
@@ -263,7 +267,7 @@
   function saveCfg() {
     try {
       localStorage.setItem("tt.cfg", JSON.stringify({
-        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, wake: S.keepAwake, snd: S.sound, help: S.showHelp, six: S.sixseven,
+        names: S.names, ppg: S.ppg, bestOf: S.bestOf, mfs: S.matchFirstServer, vib: S.vibrate, lay: S.layout, wake: S.keepAwake, snd: S.sound, help: S.showHelp, six: S.sixseven, csens: S.clapSensitivity,
       }));
     } catch (e) {}
   }
@@ -275,6 +279,7 @@
       S.ppg = c.ppg || 11; S.bestOf = c.bestOf || 5;
       S.matchFirstServer = c.mfs || 1; S.vibrate = c.vib !== false; S.layout = c.lay || "auto"; S.keepAwake = c.wake !== false;
       S.sound = c.snd !== false; S.showHelp = c.help !== false; S.sixseven = c.six === true;
+      S.clapSensitivity = typeof c.csens === "number" ? c.csens : 0.5;
     } catch (e) {}
   }
   function pickSegment(container, value, attr) {
@@ -291,6 +296,10 @@
     $("scoreVibrate").checked = S.vibrate;
     $("wakeToggle").checked = S.keepAwake;
     const sixTog = $("sixsevenToggle"); if (sixTog) sixTog.checked = S.sixseven;
+    const clapSlider = $("clapSensitivity");
+    if (clapSlider) clapSlider.value = Math.round(S.clapSensitivity * 100);
+    const clapVal = $("clapSensValue");
+    if (clapVal) clapVal.textContent = Math.round(S.clapSensitivity * 100) + "%";
     syncGlobalToggles();
   }
   function syncGlobalToggles() {
@@ -397,7 +406,7 @@
       if (peak < this.noiseFloor + 0.02) this.noiseFloor = this.noiseFloor * 0.97 + peak * 0.03;
       // deutlich groessere Marge als beim Rally-Zaehler: ein Klatscher ist ein
       // kurzer, scharfer Impuls, kein Dauergeraeusch - so faellt Gemurmel/Ballwechsel raus
-      const threshold = this.noiseFloor + 0.16;
+      const threshold = this.noiseFloor + clapMargin();
       const now = performance.now();
       if (now >= this.muteUntil) {
         if (this.armed && peak >= threshold) {
@@ -599,7 +608,7 @@
         // Wer hat gewonnen? -> 1x klatschen = Spieler 1, 2x klatschen = Spieler 2
         // (bewusst kein SpeechRecognition hier - deren Android-Systempiepton
         // würde bei jedem Neustart-Zyklus während der Wartezeit ausgelöst)
-        const threshold = this.noiseFloor + 0.16; // groessere Marge: Klatscher statt Reden/Ballwechsel
+        const threshold = this.noiseFloor + clapMargin(); // groessere Marge: Klatscher statt Reden/Ballwechsel
         if (this.winArmed && peak >= threshold) {
           this.winArmed = false;
           this.winAboveSince = now;
@@ -689,6 +698,14 @@
       const b = e.target.closest("button"); if (!b) return;
       S.matchFirstServer = +b.dataset.fs; pickSegment($("firstServeSel"), S.matchFirstServer, "fs"); saveCfg(); render();
     });
+    const clapSlider = $("clapSensitivity");
+    if (clapSlider) {
+      clapSlider.addEventListener("input", (e) => {
+        S.clapSensitivity = (+e.target.value) / 100;
+        $("clapSensValue").textContent = e.target.value + "%";
+      });
+      clapSlider.addEventListener("change", () => saveCfg());
+    }
     $("scoreVibrate").addEventListener("change", (e) => { S.vibrate = e.target.checked; saveCfg(); });
     $("wakeToggle").addEventListener("change", (e) => { S.keepAwake = e.target.checked; saveCfg(); Wake.apply(); });
     ["soundToggle", "rallySoundToggle"].forEach((id) => {
