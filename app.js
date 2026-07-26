@@ -594,7 +594,7 @@ function muteAudio(ms) {
 
 const audio = {
   ctx: null, analyser: null, stream: null, buf: null,
-  armed: true, noiseFloor: 0.02, raf: 0, muted: false,
+  armed: true, noiseFloor: 0.02, raf: 0, muted: false, aboveSince: 0,
 
   async start() {
     try {
@@ -656,12 +656,16 @@ const audio = {
     $("audioMeter").style.width = Math.min(100, peak * GAIN) + "%";
     $("thresholdMarker").style.left = Math.min(100, threshold * GAIN) + "%";
 
-    // Hysterese gegen Mehrfachzählung eines Schlags
+    // Hysterese gegen Mehrfachzählung eines Schlags + Dauer-Pruefung: ein
+    // Ball-/Schlaegertreffer ist ein sehr kurzer Knall, Gemurmel oder der
+    // Nachbartisch halten laenger an - nur kurze Impulse zaehlen als Treffer.
+    const now = performance.now();
     if (!this.muted && this.armed && peak >= threshold) {
       this.armed = false;
-      registerHit("audio");
-    } else if (!this.armed && peak < threshold * 0.55) {
+      this.aboveSince = now;
+    } else if (!this.muted && !this.armed && peak < threshold * 0.55) {
       this.armed = true;
+      if (now - this.aboveSince <= 90) registerHit("audio");
     }
     this.raf = requestAnimationFrame(() => this.loop());
   },
@@ -704,6 +708,12 @@ const visual = {
   stream: null, raf: 0, W: 160, H: 120,
   prev: null, lastX: 0.5, octx: null,
   zones: Array.from({length: 3}, () => new Array(4).fill(true)),
+  // Farbfilter: nur (fast) weisse Pixel zaehlen als moeglicher Ball -
+  // Personen/Schlaeger im Bild haben zwar Bewegung, aber i.d.R. Hautton/
+  // Kleidungsfarbe statt der hellen, farbneutralen Ballfarbe. Bei Bedarf
+  // hier je nach Hallenlicht/Balltyp nachjustieren.
+  ballBrightness: 165,   // Mindest-Helligkeit (0..255)
+  ballSaturation: 45,    // max. Kanal-Spreizung R/G/B (klein = neutral/weiss)
 
   async start() {
     const video = $("video");
@@ -772,18 +782,24 @@ const visual = {
           const col = ((i % this.W) * 4 / this.W) | 0;
           const row = (((i / this.W) | 0) * 3 / this.H) | 0;
           if (!this.zones[row][col]) continue;
-          if (Math.abs(gray[i] - this.prev[i]) > pth) {
-            count++; sumX += i % this.W;
-            const o = i * 4;
-            ov.data[o] = 56; ov.data[o + 1] = 189; ov.data[o + 2] = 248; ov.data[o + 3] = 150;
-          }
+          if (Math.abs(gray[i] - this.prev[i]) <= pth) continue;
+          // Bewegung allein reicht nicht - nur helle, farbneutrale (weisse)
+          // Pixel zaehlen als moeglicher Ball; Haut-/Kleidungsfarbe faellt raus
+          const o = i * 4;
+          const r = img[o], g = img[o + 1], b = img[o + 2];
+          const spread = Math.max(r, g, b) - Math.min(r, g, b);
+          if (gray[i] < this.ballBrightness || spread > this.ballSaturation) continue;
+          count++; sumX += i % this.W;
+          ov.data[o] = 56; ov.data[o + 1] = 189; ov.data[o + 2] = 248; ov.data[o + 3] = 150;
         }
         this.octx.putImageData(ov, 0, 0);
 
         const motion = count / n;
         $("motionMeter").style.width = Math.min(100, motion * 600) + "%";
-        // Mindestbewegung, damit Rauschen nicht zählt
-        if (motion > 0.004 && count > 0) {
+        // Mindest- UND Hoechstgroesse: ein Ball ist ein kleiner Fleck - eine
+        // grosse zusammenhaengende Flaeche (z.B. eine Person im Hintergrund)
+        // faellt damit raus, selbst wenn sie zufaellig helle Kleidung traegt
+        if (motion > 0.004 && motion < 0.05 && count > 0) {
           const cx = sumX / count / this.W; // 0..1
           // Kreuzen der Mittellinie (Netz) = ein Schlag
           if ((this.lastX < 0.5 && cx >= 0.5) || (this.lastX > 0.5 && cx <= 0.5)) {
