@@ -777,21 +777,34 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .sixseven-overlay {
   position: fixed; inset: 0; z-index: 82;
   display: flex; align-items: center; justify-content: center;
-  pointer-events: none;
-  opacity: 0; transition: opacity .3s ease;
+  pointer-events: none; overflow: hidden;
+  opacity: 0; transition: opacity .5s ease;
 }
 .sixseven-overlay.show { opacity: 1; }
 .sixseven-overlay.fade { opacity: 0; }
 .sixseven-overlay[hidden] { display: none; }
+.sixseven-flash {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.9), rgba(250,204,21,.35) 32%, transparent 68%);
+  opacity: 0;
+}
+.sixseven-overlay.show .sixseven-flash { animation: sixsevenFlash .7s ease-out both; }
+.sixseven-rays {
+  position: absolute; inset: -50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.10) 0deg 6deg, transparent 6deg 18deg);
+  opacity: 0;
+}
+.sixseven-overlay.show .sixseven-rays { opacity: 1; animation: sixsevenSpin 6s linear infinite; }
 .sixseven-card {
+  position: relative;
   text-align: center;
   background: rgba(11,17,32,.88);
   border: 1px solid rgba(56,189,248,.4);
   border-radius: 26px;
-  padding: 26px 40px 20px;
+  padding: 26px 40px 22px;
   box-shadow: 0 0 60px rgba(56,189,248,.22), 0 0 60px rgba(249,115,22,.12), 0 24px 64px rgba(0,0,0,.7);
   backdrop-filter: blur(8px);
-  animation: sixsevenPop .48s cubic-bezier(.2,1.35,.3,1) both;
+  animation: sixsevenPop .48s cubic-bezier(.2,1.35,.3,1) both, sixsevenGlow 1.7s ease-in-out .5s infinite;
 }
 .sixseven-figures {
   display: flex; align-items: center; justify-content: center; gap: 18px;
@@ -807,12 +820,21 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 }
 .sixseven-score {
   font-size: clamp(56px, 17vw, 96px); font-weight: 900; letter-spacing: 5px;
-  background: linear-gradient(135deg, var(--accent) 20%, var(--accent-2) 80%);
+  background: linear-gradient(115deg, var(--accent) 15%, #facc15 45%, var(--accent-2) 75%, var(--accent) 100%);
+  background-size: 260% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 18px rgba(56,189,248,.45));
+  animation: sixsevenShine 2.2s linear infinite;
+}
+.sixseven-callout {
+  margin-top: 6px;
+  font-size: clamp(20px, 6vw, 30px); font-weight: 900; letter-spacing: 3px;
+  color: #facc15;
+  text-shadow: 0 0 12px rgba(250,204,21,.6), 0 2px 0 rgba(0,0,0,.5);
+  animation: sixsevenWobble 1.4s ease-in-out .6s infinite;
 }
 .sixseven-brand {
-  margin-top: 12px; font-size: 12px; font-weight: 800; letter-spacing: 4px;
+  margin-top: 10px; font-size: 12px; font-weight: 800; letter-spacing: 4px;
   text-transform: uppercase; color: var(--muted);
 }
 @keyframes sixsevenPop {
@@ -828,6 +850,27 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
   0%   { transform: rotate(-30deg) scale(.5); opacity: 0; }
   55%  { transform: rotate(18deg) scale(1.35); opacity: 1; }
   100% { transform: rotate(10deg) scale(1.15); opacity: 1; }
+}
+@keyframes sixsevenFlash {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes sixsevenSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes sixsevenGlow {
+  0%, 100% { box-shadow: 0 0 60px rgba(56,189,248,.22), 0 0 60px rgba(249,115,22,.12), 0 24px 64px rgba(0,0,0,.7); }
+  50%      { box-shadow: 0 0 90px rgba(56,189,248,.4), 0 0 90px rgba(249,115,22,.28), 0 24px 64px rgba(0,0,0,.7); }
+}
+@keyframes sixsevenShine {
+  from { background-position: 0% 50%; }
+  to   { background-position: -260% 50%; }
+}
+@keyframes sixsevenWobble {
+  0%, 100% { transform: rotate(-2deg) scale(1); }
+  50%      { transform: rotate(2deg) scale(1.06); }
 }
 
 /* ===================== TEAM-DUELL ===================== */

@@ -106,7 +106,15 @@
           : [[440, 0, .10], [660, .13, .12], [880, .30, .18]], "triangle", finale ? .13 : .1);
         if (finale) speak("Die " + value + " ist erreicht, ihr Helden.");
       },
-      sixseven() { seq([[440, 0, .10], [554, .12, .10], [659, .24, .12], [880, .38, .20], [1047, .58, .30]], 'sine', .13); },
+      sixseven() {
+        // tiefer "Wumms" als Auftakt, danach ein laengerer, funkelnder Lauf nach oben
+        tone(85, 0, .24, "square", .17);
+        tone(115, 0, .20, "sine", .15);
+        seq([
+          [440, .09, .10], [554, .19, .10], [659, .29, .10], [784, .39, .10],
+          [880, .49, .16], [988, .60, .16], [1175, .72, .30], [1568, .95, .45],
+        ], "triangle", .14);
+      },
       enabled() { return S.sound; },
     };
   })();
@@ -122,10 +130,12 @@
     el.classList.remove('show', 'fade'); void el.offsetWidth;
     el.classList.add('show');
     Sound.sixseven();
+    Confetti.burst("sixseven");
+    if (S.vibrate && navigator.vibrate) navigator.vibrate([30, 40, 30, 40, 60]);
     sixsevenTimer = setTimeout(() => {
       el.classList.add('fade');
-      setTimeout(() => { el.hidden = true; el.classList.remove('show', 'fade'); }, 350);
-    }, 2200);
+      setTimeout(() => { el.hidden = true; el.classList.remove('show', 'fade'); }, 500);
+    }, 4200);
   }
 
   /* -------------------------------------------------------------- */
@@ -224,20 +234,24 @@
       this.ctx = this.ctx || this.cv.getContext("2d");
       const W = (this.cv.width = window.innerWidth);
       const H = (this.cv.height = window.innerHeight);
-      const cols = winner === 2
-        ? ["#f97316", "#fdba74", "#ffffff", "#38bdf8"]
-        : ["#38bdf8", "#7dd3fc", "#ffffff", "#f97316"];
+      const sixseven = winner === "sixseven";
+      const cols = sixseven
+        ? ["#f97316", "#38bdf8", "#facc15", "#a78bfa", "#ffffff", "#4ade80"]
+        : winner === 2
+          ? ["#f97316", "#fdba74", "#ffffff", "#38bdf8"]
+          : ["#38bdf8", "#7dd3fc", "#ffffff", "#f97316"];
+      const count = sixseven ? 220 : 150;
       this.parts = [];
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < count; i++) {
         this.parts.push({
           x: W * (0.2 + Math.random() * 0.6), y: H * 0.28 + (Math.random() - 0.5) * 80,
-          vx: (Math.random() - 0.5) * 10, vy: Math.random() * -10 - 3,
-          g: 0.16 + Math.random() * 0.12, s: 5 + Math.random() * 8,
+          vx: (Math.random() - 0.5) * (sixseven ? 14 : 10), vy: Math.random() * (sixseven ? -13 : -10) - 3,
+          g: 0.16 + Math.random() * 0.12, s: 5 + Math.random() * (sixseven ? 10 : 8),
           rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.35,
           c: cols[i % cols.length],
         });
       }
-      this.until = performance.now() + 2800;
+      this.until = performance.now() + (sixseven ? 3400 : 2800);
       cancelAnimationFrame(this.raf); this.loop();
     },
     loop() {
@@ -721,6 +735,43 @@
     });
     const sixTogEl = $("sixsevenToggle");
     if (sixTogEl) sixTogEl.addEventListener("change", (e) => { S.sixseven = e.target.checked; saveCfg(); });
+
+    const exportBtn = $("dataExportBtn");
+    if (exportBtn) exportBtn.addEventListener("click", () => {
+      const data = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        data[k] = localStorage.getItem(k);
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url; a.download = `pingpong-counter-backup-${stamp}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      toast("Backup gespeichert");
+    });
+    const importBtn = $("dataImportBtn"), importInput = $("dataImportInput");
+    if (importBtn && importInput) {
+      importBtn.addEventListener("click", () => importInput.click());
+      importInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        e.target.value = ""; // erlaubt erneuten Import derselben Datei
+        if (!file) return;
+        try {
+          const data = JSON.parse(await file.text());
+          if (!data || typeof data !== "object") throw new Error("ungueltig");
+          for (const k of Object.keys(data)) {
+            if (typeof data[k] === "string") localStorage.setItem(k, data[k]);
+          }
+          toast("Backup wiederhergestellt – lade neu ...");
+          setTimeout(() => window.location.reload(), 800);
+        } catch (_) {
+          toast("Backup-Datei ungültig");
+        }
+      });
+    }
     $("layoutSel").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       S.layout = b.dataset.lay; pickSegment($("layoutSel"), S.layout, "lay"); saveCfg(); applyLayout();

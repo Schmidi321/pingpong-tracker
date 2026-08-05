@@ -360,6 +360,16 @@
       </div>
 
       <div class="setting-row support-box">
+        <label class="field-label">Daten</label>
+        <p class="settings-note">Namen, Einstellungen und Bestwerte als Datei sichern - z.B. vor einem Handy-Wechsel oder App-Reset.</p>
+        <div class="support-actions">
+          <button class="btn btn-mini" id="dataExportBtn" type="button">Exportieren</button>
+          <button class="btn btn-mini" id="dataImportBtn" type="button">Importieren</button>
+          <input type="file" id="dataImportInput" accept="application/json" hidden />
+        </div>
+      </div>
+
+      <div class="setting-row support-box">
         <label class="field-label">Support</label>
         <p class="settings-note">Fragen, Feedback oder die App freiwillig unterstuetzen - ohne Freischaltung oder Gegenleistung.</p>
         <div class="support-actions">
@@ -444,13 +454,16 @@
       </div>
     </div>
     <div class="sixseven-overlay" id="sixsevenOverlay" hidden>
+      <div class="sixseven-flash"></div>
+      <div class="sixseven-rays"></div>
       <div class="sixseven-card">
         <div class="sixseven-figures">
           <span class="sixseven-fig f1">🙌</span>
           <span class="sixseven-score">6:7</span>
           <span class="sixseven-fig f2">🙌</span>
         </div>
-        <div class="sixseven-brand">SixSeven</div>
+        <div class="sixseven-callout">SIX&nbsp;SEVEN</div>
+        <div class="sixseven-brand">SixSeven Moment</div>
       </div>
     </div>
     <div class="toast" id="toast" hidden></div>
