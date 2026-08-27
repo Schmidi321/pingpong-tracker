@@ -4,13 +4,16 @@
 
 - App-Name: Ping Pong Counter
 - Entwickler/Brand: AppReich
-- Bundle-ID: `io.github.schmidi321.pingpongcounter` (Vorschlag, siehe README.md) - vor erstem Upload
-  in App Store Connect reservieren, danach nicht mehr aenderbar
+- Bundle-ID: `de.pingpongcounter.app` (Vorschlag, siehe README.md - folgt dem Schema, das bereits
+  fuer eine andere App im selben Account genutzt wird) - vor erstem Upload in App Store Connect
+  reservieren, danach nicht mehr aenderbar
 - App-Typ: WKWebView-Wrapper (PWABuilder/Capacitor) fuer die bestehende PWA
 - Live-Domain: https://schmidi321.github.io/pingpong-tracker/ (bereits live, HTTPS, Service Worker aktiv)
 - Zielgruppe: Tischtennis-Spieler, Trainer, Vereine, Hobbygruppen
 - Kategorie: Sport (primaer), Dienstprogramme (sekundaer)
-- Apple Developer Program: noch nicht angelegt (99 $/Jahr)
+- Apple Developer Program: **bereits aktiv** (siehe README.md "Uebertragbare Erkenntnisse aus
+  einer anderen App im selben Account") - keine neue Mitgliedschaft noetig, nur neue Bundle-ID/App
+  im Account anlegen
 
 ## Aktueller Funktionsumfang
 
@@ -79,13 +82,16 @@ Gleicher Testplan wie Android Internal Testing (siehe `android/PLAY_STORE_CHECKL
 
 ## Noch offen (bevor App Store Upload)
 
-- [ ] Apple Developer Program Mitgliedschaft anlegen (99 $/Jahr).
-- [ ] Bundle-ID in App Store Connect reservieren.
+- [x] Apple Developer Program Mitgliedschaft vorhanden (Account bereits fuer eine andere App aktiv)
+      - fuer Ping Pong Counter faellt keine weitere Gebuehr an.
+- [ ] Bundle-ID `de.pingpongcounter.app` in App Store Connect reservieren.
 - [ ] iOS-Screenshots in Apples Pflichtgroessen erstellen (z.B. 1290x2796 fuer 6.7"/6.9"-iPhones;
       bestehende 1236x2676-Android-Screenshots passen nicht direkt).
 - [ ] Support-URL festlegen und eintragen.
-- [ ] Datenschutzerklaerung (`android/PRIVACY_POLICY_DRAFT.md`) veroeffentlichen und URL in App Store
-      Connect eintragen (Apple verlangt sie zwingend, auch bei "Data Not Collected").
+- [ ] Datenschutzerklaerung (`android/PRIVACY_POLICY_DRAFT.md`) auf einer oeffentlich erreichbaren
+      URL veroeffentlichen und in App Store Connect eintragen (Apple verlangt sie zwingend, auch bei
+      "Data Not Collected" - gibt es bislang nur als Entwurf, siehe README.md). Ggf. gleich klaeren, ob
+      wegen PayPal.Me-Spendenlink auch ein Impressum noetig ist.
 - [ ] PWABuilder iOS-Paket generieren, auf einem Mac (eigenes Geraet oder Cloud-Mac-Dienst) bauen und
       signieren.
 - [ ] App Privacy Fragebogen ausfuellen (siehe Abschnitt oben).

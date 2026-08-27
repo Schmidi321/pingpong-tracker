@@ -12,16 +12,39 @@ tatsaechliche Bauen, Signieren und Hochladen in den App Store **muss auf einem M
 passieren (Apple erlaubt keine Windows-Toolchain). Ohne eigenen Mac: Cloud-Mac-Dienst (z.B. MacinCloud)
 oder CI mit macOS-Runner (z.B. Codemagic, GitHub Actions `macos-latest`) verwenden.
 
-## iOS-Daten (Vorschlag, noch nicht reserviert)
+## iOS-Daten
 
 - App-Name: Ping Pong Counter
-- Bundle-ID: `io.github.schmidi321.pingpongcounter` (gleiche Kennung wie Android-Package fuer
-  Konsistenz - muss in App Store Connect erst reserviert werden, Aenderung danach nicht mehr moeglich)
+- Bundle-ID (Vorschlag): `de.pingpongcounter.app` - folgt dem `de.<appname>.app`-Schema, das schon
+  fuer eine andere App im selben Apple-Developer-Account verwendet wird. Muss vor dem ersten Build in
+  App Store Connect reserviert werden, Aenderung danach nicht mehr moeglich.
 - Web Manifest: https://schmidi321.github.io/pingpong-tracker/manifest.json
 - Start-URL: https://schmidi321.github.io/pingpong-tracker/
 - Orientation: portrait
-- Apple Developer Program: **erforderlich, 99 $/Jahr** (im Gegensatz zu Googles einmaligen 25 $) -
-  noch nicht angelegt
+- Apple Developer Program: **bereits aktiv** (der Account wird bereits fuer eine andere App
+  genutzt). Die Mitgliedschaft (99 $/Jahr) haengt am Account, nicht an der einzelnen App - fuer
+  Ping Pong Counter faellt keine zweite Gebuehr an, es muss nur eine neue Bundle-ID/App im selben
+  Account angelegt werden.
+
+## Uebertragbare Erkenntnisse aus einer anderen App im selben Account
+
+Ein Abgleich (rein lesend, keine Aenderungen dort) mit einer anderen, bereits im App Store
+vorbereiteten App desselben Entwicklerkontos ergab technisch einen anderen Stack (natives
+Cloud-Build statt PWABuilder/Xcode) - Code/Build-Pipeline lassen sich nicht direkt uebernehmen.
+Diese Punkte sind trotzdem uebertragbar:
+
+- Bundle-ID-Schema `de.<appname>.app`.
+- `ITSAppUsesNonExemptEncryption: false` fuer die Export-Compliance-Frage - deckt sich mit der
+  Empfehlung unten.
+- Apple-Developer-Account ist derselbe wie oben beschrieben, keine neue Mitgliedschaft noetig.
+- Rechtliches (Impressum + Datenschutzerklaerung) wird dort live auf einem eigenen Server gehostet
+  (eigene Routen dafuer). Ping Pong Counter hat bisher nur den Entwurf
+  `android/PRIVACY_POLICY_DRAFT.md`, aber **noch keine oeffentlich erreichbare URL** - die braucht
+  Apple zwingend im App-Privacy-Formular (siehe Checkliste, "Noch offen"). Ein Impressum ist in
+  Deutschland ueblich, wenn eine App Spenden/Support-Links enthaelt (PayPal.Me) - lohnt sich, vor dem
+  Upload zu klaeren, ob eins noetig ist.
+- Keine lokal abgelegten Apple-Zertifikate/Keys gefunden - liegen bei der anderen App in der Cloud
+  des Build-Dienstes, nichts lokal zum Uebernehmen.
 
 ## PWA-Seite: bereits erledigt
 
