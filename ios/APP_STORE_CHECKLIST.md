@@ -88,10 +88,10 @@ Gleicher Testplan wie Android Internal Testing (siehe `android/PLAY_STORE_CHECKL
 - [ ] iOS-Screenshots in Apples Pflichtgroessen erstellen (z.B. 1290x2796 fuer 6.7"/6.9"-iPhones;
       bestehende 1236x2676-Android-Screenshots passen nicht direkt).
 - [ ] Support-URL festlegen und eintragen.
-- [ ] Datenschutzerklaerung (`android/PRIVACY_POLICY_DRAFT.md`) auf einer oeffentlich erreichbaren
-      URL veroeffentlichen und in App Store Connect eintragen (Apple verlangt sie zwingend, auch bei
-      "Data Not Collected" - gibt es bislang nur als Entwurf, siehe README.md). Ggf. gleich klaeren, ob
-      wegen PayPal.Me-Spendenlink auch ein Impressum noetig ist.
+- [x] Datenschutzerklaerung veroeffentlicht: https://schmidi321.github.io/pingpong-tracker/datenschutz.html
+      - in App Store Connect unter App Privacy als Datenschutz-URL eintragen.
+- [ ] Impressum: Entwurf liegt als `impressum.html` im Repo, aber noch nicht live/verlinkt - fehlende
+      ladungsfaehige Anschrift muss ergaenzt werden, bevor die Seite veroeffentlicht wird.
 - [ ] PWABuilder iOS-Paket generieren, auf einem Mac (eigenes Geraet oder Cloud-Mac-Dienst) bauen und
       signieren.
 - [ ] App Privacy Fragebogen ausfuellen (siehe Abschnitt oben).

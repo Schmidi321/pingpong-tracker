@@ -111,7 +111,10 @@ Hinweis fuer Data Safety Form:
       screen-score.png, screen-rally.png, screen-duel-active.png, screen-duel-result.png.
 - [x] Tablet-Screenshots fertig: tablet-7.png (1200x1920) und tablet-10.png (1600x2560).
 - [x] Feature-Grafik 1024x500 fuer die Store-Listing-Seite (feature-graphic.png).
-- [ ] Datenschutzerklaerung (`PRIVACY_POLICY_DRAFT.md`) veroeffentlichen und URL in Play Console eintragen.
+- [x] Datenschutzerklaerung veroeffentlicht: https://schmidi321.github.io/pingpong-tracker/datenschutz.html
+      - in Play Console unter Data Safety / Store-Eintrag als URL eintragen.
+- [ ] Impressum: Entwurf liegt als `impressum.html` im Repo, aber noch nicht live/verlinkt - fehlende
+      ladungsfaehige Anschrift muss ergaenzt werden (siehe Datei, TODO-Hinweis oben in der Seite).
 - [ ] assetlinks.json um Play-App-Signing-Fingerprint ergaenzen (siehe TWA-Abschnitt oben) - behebt die
       sichtbare Browser-URL-Leiste.
 - [ ] Google Play Console Account/App-Eintrag anlegen (falls noch nicht geschehen), Kategorie + Zielgruppe +

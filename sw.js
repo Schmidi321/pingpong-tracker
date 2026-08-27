@@ -2,7 +2,7 @@
    Strategie: Network-first mit Cache-Fallback.
    → Online bekommst du IMMER die frische Version (wichtig fürs schnelle
      "ändern → aufm Handy sehen"), offline läuft die App aus dem Cache. */
-const CACHE = "ping-pong-counter-v39";
+const CACHE = "ping-pong-counter-v40";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const ASSETS = [
   "./app.js",
   "./score.js",
   "./tv.html",
+  "./datenschutz.html",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
